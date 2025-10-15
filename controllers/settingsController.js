@@ -3,6 +3,19 @@ import generatePassword from "../utils/generatePassword.js";
 import bcrypt from "bcrypt";
 import { db } from "../utils/allDb.js";
 
+/**
+ * @route   GET parametres/get
+ * @desc    Récupère tous les utilisateurs, chauffeur comme utilisateur classique.
+ * @output  [
+ *              {driver_id:5, ...user},
+ *              {driver_id:6, ...user}
+ *          ]
+ * @logic   - Récupération des chauffeurs dans la mainDB
+ *          - Itération sur les chauffeurs:
+ *              Récupération du comptes utilisateurs du chauffeurs si il en a et ajout des donnés combiner au tableau d'objet
+ *          - Renvoie du tableau
+ * @depends mainDB userDB
+ */
 export const GetDrivers = function (req, res) {
     const planningDb = db.planning;
     const userdb = db.users;
@@ -21,6 +34,16 @@ export const GetDrivers = function (req, res) {
     res.status(200).json(data);
 }
 
+/**
+ * @route   POST parametres/getHistory
+ * @desc    Récupère l'historique des courses en fonction d'une date choisi
+ * @input   BODY {date: '25/05/2025'}
+ * @output  {data, drivers}
+ * @logic   - Récupère dans la mainDB les courses de la date en question
+ *          - Récupère les chauffeurs dans la mainDB
+ *          - Renvoie les deux données dans un objet
+ * @depends mainDB
+ */
 export const GetHistoryData = function (req, res) {
     const { date } = req.body;
     const planningDb = db.planning;
@@ -42,6 +65,17 @@ export const GetHistoryData = function (req, res) {
     res.status(200).json({ data, drivers });
 }
 
+/**
+ * @route   POST parametres/add
+ * @desc    Ajoute un chauffeur (Avec ou sans compte utilisateur)
+ * @input   BODY {name:'Patrick', color: '#fffff', account: true, role: 'admin'}
+ * @output  'Driver added' || randomChar (password)
+ * @logic   - Si besoin d'un compte on connecte la db user
+ *          - Insertion du chauffeur dans BDD driver de maindb
+ *          - Si besoin d'un compte on génère un mot de passe, on le hash et ensuite insertion dans BDD users
+ *          - Réponse avec le mot de passe si un compte est demandé
+ * @depends mainDB userDB
+ */
 export const AddDrivers = async function (req, res) {
     const { name, color, account, role } = req.body;
     const planningDb = db.planning;
@@ -70,6 +104,16 @@ export const AddDrivers = async function (req, res) {
     }
 }
 
+/**
+ * @route   POST parametres/?
+ * @desc    Ajoute un utilisateur
+ * @input   BODY {name:'Patrick', role: 'admin'}
+ * @output  'Driver added' || randomChar (password)
+ * @logic   - on connecte la db user
+ *          - on génère un mot de passe, on le hash et ensuite insertion dans BDD users
+ *          - Réponse avec le mot de passe
+ * @depends userDB
+ */
 export const AddAccount = async function (req, res) {
     const { name, role } = req.body;
     const userdb = db.users;
@@ -87,7 +131,22 @@ export const AddAccount = async function (req, res) {
 }
 
 
-
+/**
+ * @route   POST parametres/modify
+ * @desc    Modification d'un chauffeur
+ * @input   BODY {id:5, name:'Patrick', color: '#fffff', account: true, role: 'admin'}
+ * @output  { message: 'Driver modified', password: randomChar } || { message: 'Driver modified' }
+ * @logic   - On récupère l'utilisateur dans la db user si le chauffeur en as un
+ *          - Si le chauffeur demande un compte et n'en as pas:
+ *              - Génération du mot de passe, hash et insertion du chauffeur dans la db User
+ *            Sinon si ne veux plus de compte, 
+ *              - Suppression de celui ci dans la db User
+ *            Sinon si garde son compte et est present dans la db User
+ *              - Mise a jour du role
+ *          - Modification du chauffeur dans la main db (toutes les données update avec les nouvelles)
+ *          - Réponse avec le mot de passe si un, a été générer pour une demande de compte sinon string
+ * @depends mainDB userDB
+ */
 export const ModifyDrivers = async function (req, res) {
     const { id, name, color, account, role } = req.body;
     const planningDb = db.planning;
@@ -124,6 +183,15 @@ export const ModifyDrivers = async function (req, res) {
     }
 }
 
+/**
+ * @route   POST parametres/modifyAccount
+ * @desc    Modification d'un Utilisateur
+ * @input   BODY {name:'Patrick', role: 'admin'}
+ * @output  'Account modified'
+ * @logic   - Mise a jour avec les information recu
+ *          - Réponse string
+ * @depends userDB
+ */
 export const ModifyAccount = async function (req, res) {
     const { name, role } = req.body;
     const userdb = db.users;
@@ -137,6 +205,14 @@ export const ModifyAccount = async function (req, res) {
     res.status(200).send('Account modified');
 }
 
+/**
+ * @route   DELETE parametres/delete
+ * @desc    Suppression d'un chauffeur
+ * @input   BODY {id:5}
+ * @output  'Driver deleted'
+ * @logic   - Suppression du chauffeur a l'aide de son id
+ * @depends mainDB
+ */
 export const DeleteDrivers = function (req, res) {
     const { id } = req.body;
     const planningDb = db.planning;
@@ -150,11 +226,19 @@ export const DeleteDrivers = function (req, res) {
     res.status(200).send('Driver deleted');
 }
 
+/**
+ * @route   DELETE parametres/delete
+ * @desc    Suppression d'un utilisateur
+ * @input   BODY {name:'Patrick'}
+ * @output  'Account deleted'
+ * @logic   - Suppression du Utilisateur a l'aide de son nom
+ * @depends userDB
+ */
 export const DeleteAccount = function (req, res) {
     const { name } = req.body;
-    const planningDb = db.planning;
+    const userdb = db.users;
     try {
-        planningDb.prepare('DELETE FROM user WHERE username = ?').run(name);
+        userdb.prepare('DELETE FROM user WHERE username = ?').run(name);
     } catch (err) {
         console.error('Error while deleting account: ', err);
         res.status(500).send('Internal server error');
