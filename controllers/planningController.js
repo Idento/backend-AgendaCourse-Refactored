@@ -257,6 +257,10 @@ export const AddPlanning = function (req, res) {
     res.status(200).send('Planning added');
 }
 
+export const modifyPlanningData = async (req, res) => {
+
+}
+
 /**
  * @route   DELETE plannings/delete
  * @desc    Supprimer une course de la semaine

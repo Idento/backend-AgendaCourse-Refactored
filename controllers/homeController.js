@@ -194,6 +194,10 @@ export const DataToAdd = async function (req, res) {
     }
 }
 
+export const modifyHomeData = async (req, res) => {
+
+}
+
 /**
  * @route   DELETE home/deleteData
  * @desc    Supprime une course spécifique d'aujourd'hui ou une récurrence globale
