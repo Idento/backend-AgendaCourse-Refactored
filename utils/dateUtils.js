@@ -11,6 +11,11 @@ export function formatToDate(date) {
     return format(date, 'dd/MM/yyyy', { locale: fr })
 }
 
+export function todayDateFormated() {
+    const today = new Date()
+    return formatToDate(today)
+}
+
 // Savoir si la date passer en argument correspond avec celle d'aujourd'hui
 export function isToday(date) {
     const parsed = startOfDay(parseToDate(date))
@@ -21,4 +26,22 @@ export function isToday(date) {
 export function isOld(date) {
     const valueOfDifference = differenceInDays(new Date(), parseToDate(date))
     return valueOfDifference > 30
+}
+
+export function retrieveDate() {
+    const week = 8
+    let allWeekDays = []
+    for (let i = 1; i < week; i++) {
+        allWeekDays.push(formatToDate(addDays(new Date(), i), 'dd/MM/yyyy'))
+    }
+    return allWeekDays
+}
+
+export function retrieveDateFromDate(date) {
+    const week = 7
+    let allWeekDays = []
+    for (let i = 0; i < week; i++) {
+        allWeekDays.push(formatToDate(addDays(parse(date, 'dd/MM/yyyy', new Date()), i)))
+    }
+    return allWeekDays
 }

@@ -21,7 +21,7 @@ describe('generateNextDatesWithoutExcludedDays', () => {
 
         expect(result.length).toBe(11)
 
-        expect(result[3].getDate()).toBe(22)
+        expect(result[3].toString()).toBe('22/10/2025')
     })
     it('devrait renvoyer un tableau vide si weekDays est vide', () => {
         const result = generateNextDatesWithoutExcludeDays('15/10/2025', [1, 2, 3], [])
