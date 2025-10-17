@@ -3,7 +3,7 @@ import generatePassword from '../utils/generatePassword'
 import { getAllDrivers } from './DriverService'
 import bcrypt from "bcrypt";
 
-export async function getUsers() {
+export async function getUsersService() {
     const drivers = await getAllDrivers()
     const users = accountRepo.selectAllUsernameRole()
     const result = users.filter(user => {
@@ -36,12 +36,14 @@ export async function addAccount(name, role) {
     const randomChar = generatePassword()
     const password = await bcrypt.hash(randomChar, 10)
     accountRepo.insertNewUser(name, password, role)
+    return randomChar
 }
 
 export async function modifyAccountOfDriver(name, account, role) {
     const exists = accountRepo.selectUserWithUserName(name)
     if (account && !exists) {
-        addAccount(name, role)
+        const data = addAccount(name, role)
+        return data
     } else if (!account && exists) {
         deleteAccount(name)
     } else if (account && exists && exists.role !== role) {
@@ -57,12 +59,13 @@ export async function modifyPassword(name, password) {
     accountRepo.updateUserPasswordWithUsername(password, name)
 }
 
-export async function regeneratePassword(name) {
+export async function regeneratePasswordService(name) {
     const exists = accountRepo.selectUserWithUserName(name)
     if (!exists) throw new Error('account doesn\'t exists')
     const randomChar = generatePassword()
     const password = bcrypt.hash(randomChar, 10)
     accountRepo.updateUserPasswordWithUsername(password, name)
+    return randomChar
 }
 
 export async function deleteAccount(name) {

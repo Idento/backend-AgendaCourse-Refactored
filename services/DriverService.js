@@ -11,15 +11,17 @@ export async function addDrivers(name, color, account, role) {
     if (exists) throw new Error('Driver already exists')
     driverRepo.insertNewDriver(name, color)
     if (account) {
-        addAccount(name, role)
+        const data = addAccount(name, role)
+        return data
     }
 }
 
 export async function modifyDriver(id, name, color, account, role) {
     driverRepo.updateDriverById(name, color, id)
-    modifyAccountOfDriver(name, account, role)
+    const data = modifyAccountOfDriver(name, account, role)
+    return data
 }
 
-export async function deleteDriver(id) {
+export async function deleteDriverService(id) {
     driverRepo.deleteDriverById(id)
 }

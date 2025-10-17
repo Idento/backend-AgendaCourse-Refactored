@@ -1,6 +1,6 @@
 import * as planningRepo from '../repositories/planningRepository'
 import * as recurrenceRepo from '../repositories/recurrenceRepository'
-import { isOlderThanToday, parseToDate, retrieveDate, retrieveDateFromDate, todayDateFormated } from '../utils/dateUtils'
+import { formatToDate, isOlderThanToday, parseToDate, retrieveDate, retrieveDateFromDate, todayDateFormated } from '../utils/dateUtils'
 import { generateNextDates, generateNextDatesWithoutExcludeDays } from '../utils/recurrenceUtils'
 import { toArray } from '../utils/validationData'
 import { getAllDrivers } from './DriverService'
@@ -24,8 +24,9 @@ export async function getPlanning(week = false, date = '') {
     }
 }
 
-export async function getDriverPlanningByDate(driver_id, date) {
-    return planningRepo.selectAllPlanningByDriverIdAndDate(driver_id, date)
+export async function getDriverPlanningByDateService(driver_id, date = '') {
+    const dateForPlanning = date.length > 0 ? date : formatToDate(new Date())
+    return planningRepo.selectAllPlanningByDriverIdAndDate(driver_id, dateForPlanning)
 }
 
 export async function getHistoryPlanning(date) {
@@ -80,9 +81,9 @@ export function handleChangeRecurrence(recurrence_id, date, frequency, data) {
 
 export async function modifyPlanning(data) {
     const { id, driver_id, date, client_name, start_time, return_time, note, destination, long_distance, recurrence_id, frequency } = data
-    const dbRecurrenceData = recurrenceRepo.selectWithId(recurrence_id)
-    const isBeforeNextDay = parseToDate(date) < parseToDate(dbRecurrenceData.next_day)
-    const frequencyChanged = dbRecurrenceData.frequency !== frequency
+    const dbRecurrenceData = recurrenceRepo.selectWithId(recurrence_id) ?? { frequency: frequency, next_day: date }
+    const isBeforeNextDay = parseToDate(date) < parseToDate(dbRecurrenceData?.next_day)
+    const frequencyChanged = dbRecurrenceData?.frequency !== frequency
     const dataForInsertion = { id, driver_id, client_name, start_time, return_time, note, destination, long_distance, recurrence_id }
 
     if (frequencyChanged && isBeforeNextDay) {

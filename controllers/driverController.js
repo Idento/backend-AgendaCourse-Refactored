@@ -1,3 +1,5 @@
+import { getAllDrivers } from "../services/DriverService";
+import { getDriverPlanningByDateService } from "../services/PlanningService";
 
 
 /**
@@ -11,16 +13,14 @@
  * @depends maindb
  */
 export const GetDriverData = function (req, res) {
-    const planningDb = db.planning;
-    let data;
     try {
-        data = planningDb.prepare('SELECT * FROM driver').all();
+        const data = getAllDrivers()
+        res.status(200).json(data);
     } catch (err) {
         console.error('Error while fetching data: ', err);
         res.status(500).send('Internal server error');
         return;
     }
-    res.status(200).json(data);
 }
 
 /**
@@ -38,18 +38,16 @@ export const GetDriverData = function (req, res) {
  * @errors  - "id invalide"
  */
 export const GetDriverPlanning = function (req, res) {
-    const planningDb = db.planning;
     const { id } = req.params;
-    const date = format(new Date(), 'dd/MM/yyyy');
-    let data = [];
     try {
-        data.push(planningDb.prepare('SELECT * FROM planning WHERE driver_id = ? AND date = ?').all(id, date));
+        const data = getDriverPlanningByDateService(id);
+        res.status(200).json(data);
     } catch (err) {
         console.error('Error while fetching data: ', err);
         res.status(500).send('Internal server error');
         return;
     }
-    res.status(200).json(data);
+
 }
 
 /**
@@ -74,13 +72,12 @@ export const GetDriverPlanningByDate = function (req, res) {
     const planningDb = db.planning;
     const { id } = req.params;
     const { date } = req.body;
-    let data = [];
     try {
-        data.push(planningDb.prepare('SELECT * FROM planning WHERE driver_id = ? AND date = ?').all(id, date));
+        const data = getDriverPlanningByDateService(id, date)
+        res.status(200).json(data);
     } catch (err) {
         console.error('Error while fetching data: ', err);
         res.status(500).send('Internal server error');
         return;
     }
-    res.status(200).json(data);
 }

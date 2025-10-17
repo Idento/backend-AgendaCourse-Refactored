@@ -5,6 +5,8 @@ import { checkAll } from "../utils/checkAll.js";
 import { fr } from "date-fns/locale";
 import { checkNextDate } from "../utils/checkNextDate.js";
 import { db } from "../utils/allDb.js";
+import { addPlanning, deletePlanning, getPlanning } from "../services/PlanningService.js";
+import { addNoteWithDate, getWeekNotes } from "../services/NoteService.js";
 
 /**
  * @route   GET plannings/get
@@ -22,35 +24,14 @@ import { db } from "../utils/allDb.js";
  * @access  private
  */
 export const GetPlanning = function (req, res) {
-    let allWeekDays = retrieveDate();
-    const planningDb = db.planning;
-    let error = false
-    let drivers;
     try {
-        drivers = { drivers: planningDb.prepare('SELECT * FROM driver').all() };
+        const data = getPlanning(true)
+        res.status(200).json(data);
     } catch (err) {
-        console.error('Error while fetching drivers: ', err);
+        console.error('Error while fetching planning: ', err);
         res.status(500).send('Internal server error');
         return;
     }
-    for (let i = 0; i < allWeekDays.length; i++) {
-        try {
-            const data = planningDb.prepare(`SELECT p.*, r.frequency
-                            FROM planning p
-                            LEFT JOIN recurrence r ON p.recurrence_id = r.id
-                            WHERE p.date = ?`).all(allWeekDays[i]);
-            allWeekDays[i] = { date: allWeekDays[i], data: [...data, drivers] }
-        } catch (err) {
-            console.error('Error while fetching planning: ', err);
-            res.status(500).send('Internal server error');
-            error = true
-            break;
-        }
-    }
-    if (error) {
-        return
-    }
-    res.status(200).json(allWeekDays);
 }
 
 
@@ -72,32 +53,15 @@ export const GetPlanning = function (req, res) {
  */
 export const GetPlanningNextDates = function (req, res) {
     const { date } = req.body;
-    const planningDb = db.planning;
-    let allWeekDays = retrieveDateFromDate(date);
-    let error = false
-    let drivers;
+
     try {
-        drivers = { drivers: planningDb.prepare('SELECT * FROM driver').all() };
+        const data = getPlanning(true, date)
+        res.status(200).json(data);
     } catch (err) {
-        console.error('Error while fetching drivers: ', err);
+        console.error('Error while fetching planning: ', err);
         res.status(500).send('Internal server error');
         return;
     }
-    for (let i = 0; i < allWeekDays.length; i++) {
-        try {
-            const data = planningDb.prepare(`SELECT p.*, r.frequency
-                            FROM planning p
-                            LEFT JOIN recurrence r ON p.recurrence_id = r.id
-                            WHERE p.date = ?`).all(allWeekDays[i]);
-            allWeekDays[i] = { date: allWeekDays[i], data: [...data, drivers] }
-        } catch (err) {
-            console.error('Error while fetching planning: ', err);
-            res.status(500).send('Internal server error');
-            error = true
-            break;
-        }
-    }
-    res.status(200).json(allWeekDays);
 }
 
 
@@ -115,24 +79,15 @@ export const GetPlanningNextDates = function (req, res) {
  * @access  private
  */
 export const GetPlanningNotes = function (req, res) {
-    const planningDb = db.planning;
     const { dates } = req.body;
-    let data = [];
-    for (const date of dates[0]) {
-        try {
-            const notes = planningDb.prepare('SELECT * FROM notes WHERE date = ?').all(date);
-            if (notes.length > 0) {
-                data.push({ dates: date, notes: notes[0].note });
-            } else {
-                data.push({ dates: date, notes: '' });
-            }
-        } catch (err) {
-            console.error('Error while fetching notes: ', err);
-            res.status(500).send('Internal server error');
-            return;
-        }
+    try {
+        getWeekNotes(dates)
+        res.status(200).json(data);
+    } catch (err) {
+        console.error('Error while fetching notes: ', err);
+        res.status(500).send('Internal server error');
+        return;
     }
-    res.status(200).json(data);
 }
 
 /**
@@ -146,24 +101,16 @@ export const GetPlanningNotes = function (req, res) {
  * @access  private
  */
 export const AddPlanningNotes = function (req, res) {
-    const planningDb = db.planning;
     const { date, note } = req.body;
-    let error = false;
     try {
-        const existingNote = planningDb.prepare('SELECT * FROM notes WHERE date = ?').get(date);
-        if (existingNote) {
-            planningDb.prepare('UPDATE notes SET note = ? WHERE date = ?').run(note, date);
-        } else {
-            planningDb.prepare('INSERT INTO notes (date, note) VALUES (?, ?)').run(date, note);
-        }
+        addNoteWithDate(date, note)
+        res.status(200).send('Notes added');
     }
     catch (err) {
         console.error('Error while adding notes: ', err);
         res.status(500).send('Internal server error');
-        error = true
         return;
     }
-    res.status(200).send('Notes added');
 }
 
 /**
@@ -191,70 +138,14 @@ export const AddPlanningNotes = function (req, res) {
  */
 export const AddPlanning = function (req, res) {
     const { alldata } = req.body;
-    const planningDb = db.planning;
-    let allWeekDays = retrieveDate();
-    if (!allWeekDays.includes(alldata[0].date)) {
-        allWeekDays = retrieveDateFromDate(alldata[0].date);
-    }
-    let ids = [];
-    let error = false;
-    let datadb = [];
-    let haveRecurrence = false;
     try {
-        const data = planningDb.prepare('SELECT * FROM planning WHERE date IN (' + allWeekDays.map(() => '?').join(',') + ')').all(...allWeekDays);
-        datadb = [...datadb, ...data];
-        ids = data.map(item => item.id);
+        addPlanning(alldata)
+        res.status(200).send('Planning added');
     } catch (err) {
-        console.error('Error while fetching planning: ', err);
-        error = true;
+        console.error('Error while adding planning: ', err);
+        res.status(500).send('Internal server error');
+        return;
     }
-    for (let i = 0; i < alldata.length; i++) {
-        const { id, driver_id, date, client_name, start_time, return_time, note, destination, long_distance, recurrence_id, frequency } = alldata[i]; // Destructure the data
-        const frequencyFormated = typeof frequency === 'string' ? JSON.parse(frequency) : typeof frequency === 'number' ? [frequency] : frequency; // Parse the frequency
-        let reccurence_id = null;
-        if (ids.includes(id)) {
-            const actualLine = datadb.filter((item) => item.id === id);
-            if (frequency.length > 0 || (actualLine[0].recurrence_id !== null && actualLine[0].recurrence_id !== 0)) {
-                haveRecurrence = true;
-            }
-            const oldFrequency = planningDb.prepare('SELECT frequency FROM recurrence WHERE id = ?').get(actualLine[0].recurrence_id);
-            if (!oldFrequency && frequency.length > 0) {
-                const formatRecurrence = recurrence_id === null ? 0 : recurrence_id;
-                reccurence_id = checkNextDate(date, frequencyFormated, formatRecurrence, id);
-            } else if (oldFrequency?.frequency !== frequency.toString()) {
-                const formatRecurrence = recurrence_id === null ? 0 : recurrence_id;
-                reccurence_id = checkNextDate(date, frequencyFormated, formatRecurrence, id);
-            }
-            try {
-                planningDb.prepare(`UPDATE planning SET driver_id = ?, date = ?, client_name = ?, start_time = ?, return_time = ?, note = ?, destination = ?, long_distance = ?, recurrence_id = ? WHERE id = ?`).run(parseInt(driver_id), date, client_name, start_time, return_time, note, destination, `${long_distance}`, reccurence_id, id);
-            } catch (err) {
-                console.error('Error while updating planning: ', err);
-                res.status(500).send('Internal server error');
-                error = true
-                break;
-            }
-        } else {
-            let reccurence_id;
-            reccurence_id = checkNextDate(date, frequencyFormated, 0, 0);
-            if (frequency.length > 0) {
-                haveRecurrence = true;
-            }
-            try {
-                planningDb.prepare(`INSERT INTO planning (driver_id, date, client_name, start_time, return_time, note, destination, long_distance, recurrence_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(parseInt(driver_id), date, client_name, start_time, return_time, note, destination, `${long_distance}`, reccurence_id);
-                console.log(`------[INFO] Ajout planning ID ${id}, date ${date}, client ${client_name} | Ajouté par ${req.session.user.username} -------`);
-            } catch (err) {
-                console.error('Error while adding planning: ', err);
-                res.status(500).send('Internal server error');
-                error = true
-                break;
-            }
-        }
-    }
-    if (haveRecurrence) {
-        console.log('Checking all recurrences...');
-        checkAll();
-    }
-    res.status(200).send('Planning added');
 }
 
 export const modifyPlanningData = async (req, res) => {
@@ -295,59 +186,12 @@ export const modifyPlanningData = async (req, res) => {
  */
 export const DeletePlanning = function (req, res) {
     const { data } = req.body;
-    const planningDb = db.planning;
-    let error = false;
-    for (let i = 0; i < data.length; i++) {
-        try {
-            const line = planningDb.prepare('SELECT * FROM planning WHERE id = ?').all(data[i].id);
-            if (line[0]?.recurrence_id && !data[i].deleteRecurrence && line[0].recurrence_id !== undefined || line[0].recurrence_id !== null || line[0].recurrence_id !== 0) {
-                let recurrence
-                try {
-                    recurrence = planningDb.prepare('SELECT * FROM recurrence WHERE id = ?').get(line[0].recurrence_id);
-                } catch (err) {
-                    recurrence = null
-                    console.error('Error while fetching recurrence: ', err);
-                }
-                if (recurrence && line[0].date === recurrence?.next_day) {
-                    const frequencyFormated = typeof recurrence.frequency === 'string' ? JSON.parse(recurrence.frequency) : typeof recurrence.frequency === 'number' ? [recurrence.frequency] : recurrence.frequency;
-                    checkNextDate(recurrence.next_day, frequencyFormated, line[0].recurrence_id, line[0].id);
-                } else if (recurrence && line[0].date !== recurrence?.next_day && line[0].date !== recurrence?.start_date) {
-                    const excludeDays = planningDb.prepare('SELECT * FROM recurrence_excludedays WHERE recurrence_id = ?').all(line[0].recurrence_id);
-                    if (excludeDays.length === 0) {
-                        const data = [line[0].date]
-                        planningDb.prepare('INSERT INTO recurrence_excludedays (recurrence_id, date) VALUES (?, ?)').run(line[0].recurrence_id, JSON.stringify(data));
-                    }
-                    else {
-                        const data = JSON.parse(excludeDays[0].date);
-                        if (!data.includes(line[0].date)) {
-                            data.push(line[0].date);
-                            planningDb.prepare('UPDATE recurrence_excludedays SET date = ? WHERE recurrence_id = ?').run(JSON.stringify(data), line[0].recurrence_id);
-                        }
-                    }
-                }
-            }
-            if (data[i].deleteRecurrence) {
-                const allRecurrence = planningDb.prepare('SELECT * FROM planning WHERE recurrence_id = ?').all(line[0].recurrence_id)
-                allRecurrence.map((planning) => {
-                    if (parse(planning.date, 'dd/MM/yyyy', new Date(), { locale: fr }) < parse(line[0].date, 'dd/MM/yyyy', new Date(), { locale: fr })) {
-                        planningDb.prepare('UPDATE planning SET recurrence_id = ? WHERE id = ?').run(0, planning.id);
-                    } else {
-                        console.log(`------[INFO] Suppression planning ID ${planning.id}, date ${planning.date}, client ${planning.client_name} | Supprimé par ${req.session.user.username} -------`);
-                        planningDb.prepare('DELETE FROM planning WHERE id = ?').run(planning.id)
-                    }
-                })
-                planningDb.prepare('DELETE FROM recurrence WHERE id = ?').run(line[0].recurrence_id);
-                planningDb.prepare('DELETE FROM recurrence_excludedays WHERE recurrence_id = ?').run(line[0].recurrence_id);
-            }
-            console.log(`------[INFO] Suppression manuel planning ID ${line[0].id}, date ${line[0].date}, client ${line[0].client_name} | Supprimé par ${req.session.user.username} -------`);
-            planningDb.prepare('DELETE FROM planning WHERE id = ?').run(data[i].id);
-        } catch (err) {
-            console.error('Error while deleting planning: ', err);
-            res.status(500).send('Internal server error');
-            error = true
-            break;
-        }
+    try {
+        deletePlanning(data)
+        res.status(200).send('Planning deleted');
+    } catch (err) {
+        console.error('Error while deleting planning: ', err);
+        res.status(500).send('Internal server error');
+        return;
     }
-    checkAll();
-    res.status(200).send('Planning deleted');
 }

@@ -2,6 +2,9 @@ import Database from "better-sqlite3";
 import generatePassword from "../utils/generatePassword.js";
 import bcrypt from "bcrypt";
 import { db } from "../utils/allDb.js";
+import { addAccount, checkUserName, deleteAccount, getDriversAccount, getUsersService, modifyAccount, modifyPassword, regeneratePasswordService } from "../services/AccountService.js";
+import { getHistoryPlanning } from "../services/PlanningService.js";
+import { addDrivers, deleteDriverService, modifyDriver } from "../services/DriverService.js";
 
 /**
  * @route   GET parametres/get
@@ -17,21 +20,14 @@ import { db } from "../utils/allDb.js";
  * @depends mainDB userDB
  */
 export const GetDrivers = function (req, res) {
-    const planningDb = db.planning;
-    const userdb = db.users;
-    let data = [];
     try {
-        const driver = planningDb.prepare('SELECT * FROM driver').all();
-        driver.map(item => {
-            const user = userdb.prepare('SELECT * FROM user WHERE username = ?').get(item.name);
-            data.push({ ...item, account: user ? true : false, role: user ? user.role : 'none' });
-        });
+        const data = getDriversAccount()
+        res.status(200).json(data);
     } catch (err) {
         console.error('Error while fetching data: ', err);
         res.status(500).send('Internal server error');
         return;
     }
-    res.status(200).json(data);
 }
 
 /**
@@ -49,22 +45,15 @@ export const GetDrivers = function (req, res) {
  * @depends mainDB userDB
  */
 export const getUsers = async (req, res) => {
-    const userDb = db.users;
-    const planningDb = db.planning;
-    let users;
-    let drivers;
     try {
-        drivers = planningDb.prepare('SELECT * FROM driver').all();
-        users = userDb.prepare('SELECT username, role FROM user').all();
+        const data = getUsersService()
+        res.status(200).json(data);
+
     } catch (err) {
         console.error('Error while fetching users: ', err);
         res.status(500).send('Internal server error');
         return;
     }
-    let result = users.filter(user => {
-        return drivers.every(driver => driver.name !== user.username);
-    })
-    res.status(200).json(result);
 };
 
 /**
@@ -79,23 +68,14 @@ export const getUsers = async (req, res) => {
  */
 export const GetHistoryData = function (req, res) {
     const { date } = req.body;
-    const planningDb = db.planning;
-    let data;
-    let drivers;
     try {
-        data = planningDb.prepare('SELECT * FROM planning WHERE date = ?').all(date);
+        const data = getHistoryPlanning(date)
+        res.status(200).json(data);
     } catch (err) {
         console.error('Error while fetching data: ', err);
         res.status(500).send('Internal server error');
     }
-    try {
-        drivers = planningDb.prepare('SELECT * FROM driver').all();
-    } catch (err) {
-        console.error('Error while fetching drivers: ', err);
-        res.status(500).send('Internal server error');
-        return;
-    }
-    res.status(200).json({ data, drivers });
+
 }
 
 /**
@@ -109,19 +89,13 @@ export const GetHistoryData = function (req, res) {
  */
 export const CheckUserName = async (req, res) => {
     const { username } = req.body;
-    const userDb = db.users;
-    let user;
     try {
-        user = userDb.prepare('SELECT * FROM user WHERE username = ?').get(username);
+        const data = checkUserName(username)
+        res.status(200).json({ exists: data });
     } catch (err) {
         console.error('Error while checking username: ', err);
         res.status(500).send('Internal server error');
         return;
-    }
-    if (user) {
-        res.status(200).json({ exists: true });
-    } else {
-        res.status(200).json({ exists: false });
     }
 }
 
@@ -138,29 +112,13 @@ export const CheckUserName = async (req, res) => {
  */
 export const AddDrivers = async function (req, res) {
     const { name, color, account, role } = req.body;
-    const planningDb = db.planning;
-    let userdb;
-    let randomChar
-    if (account) {
-        userdb = db.users;
-    }
     try {
-        planningDb.prepare('INSERT INTO driver (name, color) VALUES (?, ?)').run(name, color);
-        if (account) {
-            randomChar = generatePassword()
-            const password = await bcrypt.hash(randomChar, 10);
-            userdb.prepare('INSERT INTO user (username, password, role) VALUES (?, ?, ?)').run(name, password, role);
-        }
+        const data = addDrivers(name, color, account, role)
+        res.status(200).send(data ?? 'Driver added');
     } catch (err) {
         console.error('Error while adding driver: ', err);
         res.status(500).send('Internal server error');
         return;
-    }
-    if (account) {
-        res.status(200).send(randomChar);
-        return;
-    } else {
-        res.status(200).send('Driver added');
     }
 }
 
@@ -176,18 +134,14 @@ export const AddDrivers = async function (req, res) {
  */
 export const createUser = async (req, res) => {
     const { username, role } = req.body;
-    const userDb = db.users;
-    let randomChar
     try {
-        randomChar = generatePassword();
-        const hashedPassword = await bcrypt.hash(randomChar, 10);
-        userDb.prepare('INSERT INTO user (username, password, role) VALUES (?, ?, ?)').run(username, hashedPassword, role);
+        const data = addAccount(username, role)
+        res.status(200).send(data);
     } catch (err) {
         console.error('Error while creating user: ', err);
         res.status(500).send('Internal server error');
         return;
     }
-    res.status(200).send(randomChar);
 }
 
 /**
@@ -208,37 +162,13 @@ export const createUser = async (req, res) => {
  */
 export const ModifyDrivers = async function (req, res) {
     const { id, name, color, account, role } = req.body;
-    const planningDb = db.planning;
-    const userdb = db.users;
-    let user = false;
-    let randomChar = false;
     try {
-        user = userdb.prepare('SELECT * FROM user WHERE username = ?').get(name);
-    } catch (err) {
-        user = false;
-        console.error('Error while fetching user: ', err);
-    }
-    if (account && !user) {
-        randomChar = generatePassword()
-        const password = await bcrypt.hash(randomChar, 10);
-        userdb.prepare('INSERT INTO user (username, password, role) VALUES (?, ?, ?)').run(name, password, role);
-    } else if (!account && user) {
-        userdb.prepare('DELETE FROM user WHERE username = ?').run(name);
-    } else if (account && user) {
-        userdb.prepare('UPDATE user SET role = ? WHERE username = ?').run(role, name);
-    }
-    try {
-        planningDb.prepare('UPDATE driver SET name = ?, color = ? WHERE id = ?').run(name, color, id);
+        const data = modifyDriver(id, name, color, account, role)
+        res.status(200).send(data);
     } catch (err) {
         console.error('Error while modifying driver: ', err);
         res.status(500).send('Internal server error');
         return;
-    }
-    if (randomChar.length > 0) {
-        res.status(200).json({ message: 'Driver modified', password: randomChar });
-        return;
-    } else {
-        res.status(200).json({ message: 'Driver modified' });
     }
 }
 
@@ -253,15 +183,14 @@ export const ModifyDrivers = async function (req, res) {
  */
 export const ModifyAccount = async function (req, res) {
     const { name, role } = req.body;
-    const userdb = db.users;
     try {
-        userdb.prepare('UPDATE user SET role = ? WHERE username = ?').run(role, name);
+        modifyAccount(name, role)
+        res.status(200).send('Account modified');
     } catch (err) {
         console.error('Error while modifying account: ', err);
         res.status(500).send('Internal server error');
         return;
     }
-    res.status(200).send('Account modified');
 }
 
 /**
@@ -277,24 +206,14 @@ export const ModifyAccount = async function (req, res) {
  */
 export const changePassword = async (req, res) => {
     const { username, newPassword } = req.body;
-    const userDb = db.users;
-    let user;
     try {
-        user = userDb.prepare('SELECT * FROM user WHERE username = ?').get(username);
-    } catch (err) {
-        console.error('Error while fetching user: ', err);
-        res.status(500).send('Internal server error');
-        return;
-    }
-    try {
-        const password = await bcrypt.hash(newPassword, 10);
-        userDb.prepare('UPDATE user SET password = ? WHERE username = ?').run(password, username);
+        modifyPassword(username, newPassword)
+        res.status(200).send('Password changed');
     } catch (err) {
         console.error('Error while changing password: ', err);
         res.status(500).send('Internal server error');
         return;
     }
-    res.status(200).send('Password changed');
 }
 
 /**
@@ -309,18 +228,14 @@ export const changePassword = async (req, res) => {
  */
 export const regenPassword = async (req, res) => {
     const { username } = req.body;
-    const userDb = db.users;
-    let randomChar;
     try {
-        randomChar = generatePassword();
-        const password = await bcrypt.hash(randomChar, 10);
-        userDb.prepare('UPDATE user SET password = ? WHERE username = ?').run(password, username);
+        const data = regeneratePasswordService(username)
+        res.status(200).send(data)
     } catch (err) {
         console.error('Error while regenerating password: ', err);
         res.status(500).send('Internal server error');
         return;
     }
-    res.status(200).send(randomChar);
 }
 
 /**
@@ -333,15 +248,14 @@ export const regenPassword = async (req, res) => {
  */
 export const DeleteDrivers = function (req, res) {
     const { id } = req.body;
-    const planningDb = db.planning;
     try {
-        planningDb.prepare('DELETE FROM driver WHERE id = ?').run(id);
+        deleteDriverService(id)
+        res.status(200).send('Driver deleted');
     } catch (err) {
         console.error('Error while deleting driver: ', err);
         res.status(500).send('Internal server error');
         return;
     }
-    res.status(200).send('Driver deleted');
 }
 
 /**
@@ -354,13 +268,12 @@ export const DeleteDrivers = function (req, res) {
  */
 export const DeleteAccount = function (req, res) {
     const { name } = req.body;
-    const userdb = db.users;
     try {
-        userdb.prepare('DELETE FROM user WHERE username = ?').run(name);
+        deleteAccount(name)
+        res.status(200).send('Account deleted');
     } catch (err) {
         console.error('Error while deleting account: ', err);
         res.status(500).send('Internal server error');
         return;
     }
-    res.status(200).send('Account deleted');
 }
