@@ -19,7 +19,7 @@ export function selectAllPlanningByRecurrenceAndDate(recurrenceId, date) {
 }
 
 export function selectAllPlanningByReccurenceId(recurrenceId) {
-    return planningdb.prepare('SELECT * FROM planning WHERE recurrence_id = ?').all()
+    return planningdb.prepare('SELECT * FROM planning WHERE recurrence_id = ?').get(recurrenceId)
 }
 
 export function selectAllPlanningByDate(date) {
@@ -37,6 +37,10 @@ export function selectAllIdAndRecurrenceIDFromPlanning() {
 
 export function selectPlanningFrequencyWithDate(date) {
     return planningdb.prepare(`SELECT p.*, r.frequency FROM planning p LEFT JOIN recurrence r ON p.recurrence_id = r.id WHERE p.date = ?`).get(date)
+}
+
+export function selectPlanningWithRecurrence() {
+    return planningdb.prepare(`SELECT * FROM planning WHERE recurrence_id IS NOT NULL AND recurrence_id != 0`).all()
 }
 
 export function insertNewPlanningWithoutRecurrence({ driver_id, date, client_name, start_time, return_time, note, destination, long_distance }) {
@@ -152,6 +156,10 @@ export function deletePlanningWithId(id) {
     return planningdb.prepare('DELETE FROM planning WHERE id = ?').run(id)
 }
 
+export function deletePlanningWithRecurrenceId(reccurence_id) {
+    return planningdb.prepare('DELETE FROM planning WHERE recurrence_id = ?').run(reccurence_id)
+}
+
 export function deleteManyPlanningWithDateAndReccurenceId(planningToDelete) {
     const insertManyPlannings = (plannings) => {
         const stmt = planningdb.prepare('DELETE FROM planning WHERE date = @date, recurrence_id= @recurrence_id')
@@ -166,4 +174,3 @@ export function deleteManyPlanningWithDateAndReccurenceId(planningToDelete) {
 
     return insertManyPlannings(planningToDelete)
 }
-

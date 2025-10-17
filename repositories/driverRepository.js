@@ -6,6 +6,10 @@ export function getAll() {
     return driverdb.prepare('SELECT * FROM driver').all()
 }
 
+export function getDriverByName(name) {
+    return driverdb.prepare('SELECT * FROM driver WHERE name=?').run(name)
+}
+
 export function insertNewDriver(name, color) {
     return driverdb.prepare('INSERT INTO driver (name, color) VALUES (?, ?)').run(name, color)
 }

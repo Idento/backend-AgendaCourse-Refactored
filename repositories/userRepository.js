@@ -10,6 +10,10 @@ export function selectAllUsernameRole() {
     return userDb.prepare('SELECT username, role FROM user').all()
 }
 
+export function selectListOfUserWithUsername(listOfUsername) {
+    return userDb.prepare(`SELECT * FROM user WHERE username IN (${listOfUsername.map(() => '?').join(',')})`).all(listOfUsername)
+}
+
 export function insertNewUser(username, password, role) {
     return userDb.prepare('INSERT INTO user (username, password, role) VALUES (?, ?, ?)').run(username, password, role)
 }
