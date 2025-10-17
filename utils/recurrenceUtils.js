@@ -1,6 +1,7 @@
 import { RRule, RRuleSet } from "rrule";
 import { addWeeksForReccurence, formatToDate, parseToDate } from "./dateUtils";
 import { isSameDay, startOfDay } from "date-fns";
+import { toArray } from "./validationData";
 
 const WEEKDAYBYNUMBER = {
     1: RRule.MO,
@@ -13,9 +14,11 @@ const WEEKDAYBYNUMBER = {
 }
 
 export function generateNextDates(startDate, weekDays) {
-    const rruleWeekDays = weekDays.map((item) => WEEKDAYBYNUMBER[item])
+    if (weekDays.length === 0) return []
+    const safeWeekDay = toArray(weekDays)
+    const rruleWeekDays = safeWeekDay.map((item) => WEEKDAYBYNUMBER[item])
     const parsedDate = parseToDate(startDate)
-    const endOfRecurrence = weekDays.length * 4
+    const endOfRecurrence = safeWeekDay.length * 4
     const rule = new RRule({
         freq: RRule.WEEKLY,
         interval: 1,
@@ -24,16 +27,16 @@ export function generateNextDates(startDate, weekDays) {
         count: endOfRecurrence
     })
     const dates = rule.all()
-
-    if (!Array.isArray(weekDays) || weekDays.length === 0) return []
-    return dates
+    const formatedDates = dates.map(formatToDate)
+    return formatedDates
 }
 
 export function generateNextDatesWithoutExcludeDays(startDate, weekDays, excluded_days) {
-    if (!Array.isArray(weekDays) || !Array.isArray(excluded_days) || weekDays.length === 0 || excluded_days.length === 0) return []
-    const rruleWeekDays = weekDays.map((item) => WEEKDAYBYNUMBER[item])
+    if (!Array.isArray(excluded_days) || weekDays.length === 0 || excluded_days.length === 0) return []
+    const safeWeekDay = toArray(weekDays)
+    const rruleWeekDays = safeWeekDay.map((item) => WEEKDAYBYNUMBER[item])
     const parsedDate = parseToDate(startDate)
-    const count = weekDays.length * 4
+    const count = safeWeekDay.length * 4
     const rule = new RRule({
         freq: RRule.WEEKLY,
         interval: 1,

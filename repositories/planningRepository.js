@@ -89,32 +89,35 @@ export function insertNewPlanningWithRecurrence({ driver_id, date, client_name, 
     )
 }
 
-export function updateTodayPlanningWithId({ driver_id, client_name, start_time, return_time, note, destination, long_distance, reccurence_id, id }) {
-    const sql = `
-    UPDATE planning 
-    SET driver_id = ?, 
-    client_name = ?, 
-    start_time = ?,
-    return_time = ?, 
-    note = ?, 
-    destination = ?, 
-    long_distance = ?, 
-    recurrence_id = ? WHERE id = ?`
-
-    return planningdb.prepare(sql).run(
+export function insertManyNewPlanningsWithRecurrence(planning) {
+    const insertManyPlannings = (plannings) => {
+        const stmt = planningdb.prepare(`
+        INSERT INTO 
+        planning (
         driver_id,
-        client_name,
-        start_time,
-        return_time,
-        note,
-        destination,
-        long_distance,
-        reccurence_id,
-        id
-    )
+        date, 
+        client_name, 
+        start_time, 
+        return_time, 
+        note, 
+        destination, 
+        long_distance, 
+        recurrence_id ) 
+        VALUES (@driver_id, @date, @client_name, @start_time, @return_time, @note, @destination, @long_distance, @recurrence_id)`)
+
+        const insertMany = planningdb.transaction((rows) => {
+            for (const row of rows) {
+                stmt.run(row)
+            }
+        })
+        insertMany(plannings)
+    }
+
+    return insertManyPlannings(planning)
 }
 
-export function updateFuturePlanningWithId({ driver_id, date, client_name, start_time, return_time, note, destination, long_distance, reccurence_id, id }) {
+
+export function updatePlanningWithId({ driver_id, date, client_name, start_time, return_time, note, destination, long_distance, reccurence_id, id }) {
     const sql = `
     UPDATE planning 
     SET driver_id = ?, 
@@ -136,7 +139,8 @@ export function updateFuturePlanningWithId({ driver_id, date, client_name, start
         note,
         destination,
         long_distance,
-        reccurence_id
+        reccurence_id,
+        id
     )
 }
 
@@ -146,5 +150,20 @@ export function updatePlanningRecurrenceIdWithId(reccurence_id, id) {
 
 export function deletePlanningWithId(id) {
     return planningdb.prepare('DELETE FROM planning WHERE id = ?').run(id)
+}
+
+export function deleteManyPlanningWithDateAndReccurenceId(planningToDelete) {
+    const insertManyPlannings = (plannings) => {
+        const stmt = planningdb.prepare('DELETE FROM planning WHERE date = @date, recurrence_id= @recurrence_id')
+
+        const insertMany = planningdb.transaction((rows) => {
+            for (const row of rows) {
+                stmt.run(row)
+            }
+        })
+        insertMany(plannings)
+    }
+
+    return insertManyPlannings(planningToDelete)
 }
 

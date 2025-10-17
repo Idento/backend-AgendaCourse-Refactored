@@ -4,10 +4,12 @@ import { generateNextDates, generateNextDatesWithoutExcludeDays } from '../utils
 describe('generateNextDates', () => {
     it('devrai générer les dates sur 4 semaines pour les jours spécifié', () => {
         const result = generateNextDates('15/10/2025', [1, 2, 3])
+        console.log(result);
+
 
         expect(result.length).toBe(12)
 
-        expect(result[0].getDate()).toBe(15)
+        expect(result[0]).toBe('15/10/2025')
     })
     it('devrait renvoyer un tableau vide si weekDays est vide', () => {
         const result = generateNextDates('15/10/2025', [])
