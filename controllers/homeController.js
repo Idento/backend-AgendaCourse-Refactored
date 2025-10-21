@@ -1,11 +1,3 @@
-import { addDays, format, parse } from 'date-fns';
-import Database from 'better-sqlite3';
-import { frequentHomeUpdate } from '../utils/frequentUpdate.js';
-import { checkAll } from '../utils/checkAll.js';
-import { fr } from 'date-fns/locale';
-import { json } from 'express';
-import { checkNextDate } from '../utils/checkNextDate.js';
-import { db } from '../utils/allDb.js';
 import { addPlanning, deletePlanning, getPlanning, modifyPlanning } from '../services/PlanningService.js';
 import { addNoteWithDate, getSingleNotesWithDate } from '../services/NoteService.js';
 
@@ -19,9 +11,10 @@ import { addNoteWithDate, getSingleNotesWithDate } from '../services/NoteService
  * @logic   -Récupère toutes les courses d'aujourd'hui
  * @access  private
  */
-export const GetHomeData = function (req, res) {
+export const GetHomeData = async function (req, res) {
     try {
-        const data = getPlanning()
+        const data = await getPlanning()
+        console.log('getHomedata', data);
         res.status(200).json(data);
     } catch (err) {
         res.status(500).json('Aucun planning trouvé');
@@ -40,10 +33,11 @@ export const GetHomeData = function (req, res) {
  * @depends maindb
  * @access  private
  */
-export const GetHomeNotes = function (req, res) {
+export const GetHomeNotes = async function (req, res) {
     const { date } = req.body;
     try {
-        const data = getSingleNotesWithDate(date);
+        const data = await getSingleNotesWithDate(date);
+        console.log('getHomeNotes', data);
         res.status(200).json(data);
     } catch (err) {
         console.error('Error while fetching data: ', err);
@@ -70,11 +64,11 @@ export const GetHomeNotes = function (req, res) {
  * @depends maindb
  * @example
  */
-export const AddHomeNote = function (req, res) {
-    const planningDb = db.planning;
+export const AddHomeNote = async function (req, res) {
     const { date, note } = req.body;
     try {
-        addNoteWithDate(date, note)
+        const data = await addNoteWithDate(date, note)
+        console.log('addhomenote id added', data);
         res.status(200).send('Data added');
     } catch (err) {
         console.error('Error while adding data: ', err);
@@ -119,8 +113,10 @@ export const AddHomeNote = function (req, res) {
  */
 export const DataToAdd = async function (req, res) {
     const { data } = req.body;
+    console.log(data);
     try {
-        addPlanning(data)
+        const added = await addPlanning(data)
+        console.log('data added to planning', added);
         res.status(200).send('Data added');
     } catch (err) {
         console.error('Error while adding data: ', err);
@@ -133,7 +129,8 @@ export const DataToAdd = async function (req, res) {
 export const modifyHomeData = async (req, res) => {
     const { data } = req.body
     try {
-        modifyPlanning(data)
+        const result = await modifyPlanning(data)
+        console.log('modifyHomeData', result);
         res.status(200).send('Data modified');
     } catch (err) {
         console.error('Error while adding data: ', err);
@@ -177,10 +174,10 @@ export const modifyHomeData = async (req, res) => {
  * @access private
  * @depends maindb
  */
-export const DeleteData = function (req, res) {
+export const DeleteData = async function (req, res) {
     const { data } = req.body;
     try {
-        deletePlanning(data)
+        await deletePlanning(data)
         res.status(200).send('Data deleted');
     } catch (err) {
         console.error('Error while adding data: ', err);

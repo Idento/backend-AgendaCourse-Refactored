@@ -1,0 +1,30 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 30
+    },
+    "auditLog": "D:\\Web Projects\\backend AgendaCourse Refactored\\logs\\.277fdf8d360addb66d86f9e227dd1891a8dbee58-audit.json",
+    "files": [
+        {
+            "date": 1760777891795,
+            "name": "D:\\Web Projects\\backend AgendaCourse Refactored\\logs\\2025-10-18.log",
+            "hash": "c32f99561ce12d4b467ba925f537825031e6739890f8b5385b3195f278897839"
+        },
+        {
+            "date": 1760857929552,
+            "name": "D:\\Web Projects\\backend AgendaCourse Refactored\\logs\\2025-10-19.log",
+            "hash": "78a68ba2081ff2948c0abef139158a799eec92d1cc9093c20026266e9d8090d6"
+        },
+        {
+            "date": 1760941688905,
+            "name": "D:\\Web Projects\\backend AgendaCourse Refactored\\logs\\2025-10-20.log",
+            "hash": "029856324c0930e6c3369f6e057d6f7b56524525744c22373749b3a72256c0b3"
+        },
+        {
+            "date": 1761028125343,
+            "name": "D:\\Web Projects\\backend AgendaCourse Refactored\\logs\\2025-10-21.log",
+            "hash": "291a06fe9f17a5c1f51a37dcea2ccb7d567a22cba13dfc2b97f27f4682af9d6e"
+        }
+    ],
+    "hashType": "sha256"
+}

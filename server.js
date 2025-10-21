@@ -1,8 +1,8 @@
 import app, { corsOptions, sessionMiddleware } from './app.js'; // Importez la configuration de l'app
 import http from 'http';
 import { Server as SocketIo } from 'socket.io';
-import { frequentHomeUpdate, frequentPlanningUpdate } from './utils/frequentUpdate.js';
 import './utils/checkpoint-task.js'
+import { getPlanningCache } from './services/PlanningService.js';
 
 const normalizePort = val => {
     const port = parseInt(val, 10);
@@ -59,15 +59,15 @@ io.on('connection', (socket) => {
 
         socket.intervals = {};
 
-        socket.on('pageLocation', (data) => {
+        socket.on('pageLocation', async (data) => {
             clearInterval(socket.intervals['homeUpdate']);
 
             if (data === 'home') {
-                socket.emit('homeDataUpdate', frequentHomeUpdate());
+                socket.emit('homeDataUpdate', await getPlanningCache());
                 console.log('ajout de l\'intervalle homeUpdate');
 
-                socket.intervals['homeDataUpdate'] = setInterval(() => {
-                    const data = frequentHomeUpdate();
+                socket.intervals['homeDataUpdate'] = setInterval(async () => {
+                    const data = await getPlanningCache();
                     socket.emit('homeDataUpdate', data);
                 }, 60000);
             }

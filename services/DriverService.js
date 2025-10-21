@@ -1,5 +1,5 @@
-import * as driverRepo from '../repositories/driverRepository'
-import { addAccount, modifyAccountOfDriver } from './AccountService'
+import * as driverRepo from '../repositories/driverRepository.js'
+import { addAccount, modifyAccountOfDriver } from './AccountService.js'
 
 
 export async function getAllDrivers() {

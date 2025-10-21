@@ -1,7 +1,3 @@
-import Database from "better-sqlite3";
-import generatePassword from "../utils/generatePassword.js";
-import bcrypt from "bcrypt";
-import { db } from "../utils/allDb.js";
 import { addAccount, checkUserName, deleteAccount, getDriversAccount, getUsersService, modifyAccount, modifyPassword, regeneratePasswordService } from "../services/AccountService.js";
 import { getHistoryPlanning } from "../services/PlanningService.js";
 import { addDrivers, deleteDriverService, modifyDriver } from "../services/DriverService.js";
@@ -19,9 +15,9 @@ import { addDrivers, deleteDriverService, modifyDriver } from "../services/Drive
  *          - Renvoie du tableau
  * @depends mainDB userDB
  */
-export const GetDrivers = function (req, res) {
+export const GetDrivers = async function (req, res) {
     try {
-        const data = getDriversAccount()
+        const data = await getDriversAccount()
         res.status(200).json(data);
     } catch (err) {
         console.error('Error while fetching data: ', err);
@@ -46,7 +42,7 @@ export const GetDrivers = function (req, res) {
  */
 export const getUsers = async (req, res) => {
     try {
-        const data = getUsersService()
+        const data = await getUsersService()
         res.status(200).json(data);
 
     } catch (err) {
@@ -66,10 +62,10 @@ export const getUsers = async (req, res) => {
  *          - Renvoie les deux données dans un objet
  * @depends mainDB
  */
-export const GetHistoryData = function (req, res) {
+export const GetHistoryData = async function (req, res) {
     const { date } = req.body;
     try {
-        const data = getHistoryPlanning(date)
+        const data = await getHistoryPlanning(date)
         res.status(200).json(data);
     } catch (err) {
         console.error('Error while fetching data: ', err);
@@ -90,7 +86,7 @@ export const GetHistoryData = function (req, res) {
 export const CheckUserName = async (req, res) => {
     const { username } = req.body;
     try {
-        const data = checkUserName(username)
+        const data = await checkUserName(username)
         res.status(200).json({ exists: data });
     } catch (err) {
         console.error('Error while checking username: ', err);
@@ -113,7 +109,7 @@ export const CheckUserName = async (req, res) => {
 export const AddDrivers = async function (req, res) {
     const { name, color, account, role } = req.body;
     try {
-        const data = addDrivers(name, color, account, role)
+        const data = await addDrivers(name, color, account, role)
         res.status(200).send(data ?? 'Driver added');
     } catch (err) {
         console.error('Error while adding driver: ', err);
@@ -135,7 +131,7 @@ export const AddDrivers = async function (req, res) {
 export const createUser = async (req, res) => {
     const { username, role } = req.body;
     try {
-        const data = addAccount(username, role)
+        const data = await addAccount(username, role)
         res.status(200).send(data);
     } catch (err) {
         console.error('Error while creating user: ', err);
@@ -163,7 +159,7 @@ export const createUser = async (req, res) => {
 export const ModifyDrivers = async function (req, res) {
     const { id, name, color, account, role } = req.body;
     try {
-        const data = modifyDriver(id, name, color, account, role)
+        const data = await modifyDriver(id, name, color, account, role)
         res.status(200).send(data);
     } catch (err) {
         console.error('Error while modifying driver: ', err);
@@ -184,7 +180,7 @@ export const ModifyDrivers = async function (req, res) {
 export const ModifyAccount = async function (req, res) {
     const { name, role } = req.body;
     try {
-        modifyAccount(name, role)
+        await modifyAccount(name, role)
         res.status(200).send('Account modified');
     } catch (err) {
         console.error('Error while modifying account: ', err);
@@ -207,7 +203,7 @@ export const ModifyAccount = async function (req, res) {
 export const changePassword = async (req, res) => {
     const { username, newPassword } = req.body;
     try {
-        modifyPassword(username, newPassword)
+        await modifyPassword(username, newPassword)
         res.status(200).send('Password changed');
     } catch (err) {
         console.error('Error while changing password: ', err);
@@ -229,7 +225,7 @@ export const changePassword = async (req, res) => {
 export const regenPassword = async (req, res) => {
     const { username } = req.body;
     try {
-        const data = regeneratePasswordService(username)
+        const data = await regeneratePasswordService(username)
         res.status(200).send(data)
     } catch (err) {
         console.error('Error while regenerating password: ', err);
@@ -246,10 +242,10 @@ export const regenPassword = async (req, res) => {
  * @logic   - Suppression du chauffeur a l'aide de son id
  * @depends mainDB
  */
-export const DeleteDrivers = function (req, res) {
+export const DeleteDrivers = async function (req, res) {
     const { id } = req.body;
     try {
-        deleteDriverService(id)
+        await deleteDriverService(id)
         res.status(200).send('Driver deleted');
     } catch (err) {
         console.error('Error while deleting driver: ', err);
@@ -266,10 +262,10 @@ export const DeleteDrivers = function (req, res) {
  * @logic   - Suppression du Utilisateur a l'aide de son nom
  * @depends userDB
  */
-export const DeleteAccount = function (req, res) {
+export const DeleteAccount = async function (req, res) {
     const { name } = req.body;
     try {
-        deleteAccount(name)
+        await deleteAccount(name)
         res.status(200).send('Account deleted');
     } catch (err) {
         console.error('Error while deleting account: ', err);

@@ -10,10 +10,10 @@ import {
     createUser,
     changePassword,
     regenPassword,
-    CheckUserName
+    CheckUserName,
+    getUsers
 } from '../controllers/settingsController.js';
 import { isAuthAndAdmin, isAuthentified } from '../middlewares/sessionCheck.js';
-import { getUsers } from '../controllers/userController.js';
 
 
 const router = Router();

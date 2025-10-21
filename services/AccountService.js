@@ -1,6 +1,6 @@
-import * as accountRepo from '../repositories/userRepository'
-import generatePassword from '../utils/generatePassword'
-import { getAllDrivers } from './DriverService'
+import * as accountRepo from '../repositories/userRepository.js'
+import generatePassword from '../utils/generatePassword.js'
+import { getAllDrivers } from './DriverService.js'
 import bcrypt from "bcrypt";
 
 export async function getUsersService() {

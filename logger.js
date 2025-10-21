@@ -33,7 +33,7 @@ const logger = winston.createLogger({
     ]
 })
 
-console.log = (...args) => logger.info(args.join(' '))
+// console.log = (...args) => logger.info(args.join(' '))
 console.info = (...args) => logger.info(args.join(' '))
 console.warn = (...args) => logger.warn(args.join(' '))
 console.error = (...args) => logger.error(args.join(' '))

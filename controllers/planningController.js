@@ -1,12 +1,5 @@
-import Database from "better-sqlite3";
-import { format, parse, addDays } from "date-fns";
-import { retrieveDate, retrieveDateFromDate } from "../utils/retrieveDate.js";
-import { checkAll } from "../utils/checkAll.js";
-import { fr } from "date-fns/locale";
-import { checkNextDate } from "../utils/checkNextDate.js";
-import { db } from "../utils/allDb.js";
-import { addPlanning, deletePlanning, getPlanning } from "../services/PlanningService.js";
-import { addNoteWithDate, getWeekNotes } from "../services/NoteService.js";
+import { addPlanning, deletePlanning, getPlanning, modifyPlanning } from "../services/PlanningService.js";
+import { modifyOrAddNote, getWeekNotes } from "../services/NoteService.js";
 
 /**
  * @route   GET plannings/get
@@ -23,9 +16,9 @@ import { addNoteWithDate, getWeekNotes } from "../services/NoteService.js";
  * @depends mainDB
  * @access  private
  */
-export const GetPlanning = function (req, res) {
+export const GetPlanning = async function (req, res) {
     try {
-        const data = getPlanning(true)
+        const data = await getPlanning(true)
         res.status(200).json(data);
     } catch (err) {
         console.error('Error while fetching planning: ', err);
@@ -51,11 +44,10 @@ export const GetPlanning = function (req, res) {
  * @depends mainDB
  * @access  private
  */
-export const GetPlanningNextDates = function (req, res) {
+export const GetPlanningNextDates = async function (req, res) {
     const { date } = req.body;
-
     try {
-        const data = getPlanning(true, date)
+        const data = await getPlanning(true, date)
         res.status(200).json(data);
     } catch (err) {
         console.error('Error while fetching planning: ', err);
@@ -78,10 +70,11 @@ export const GetPlanningNextDates = function (req, res) {
  * @depends mainDB
  * @access  private
  */
-export const GetPlanningNotes = function (req, res) {
+export const GetPlanningNotes = async function (req, res) {
     const { dates } = req.body;
     try {
-        getWeekNotes(dates)
+        const data = await getWeekNotes(dates)
+        console.log('note planning', data);
         res.status(200).json(data);
     } catch (err) {
         console.error('Error while fetching notes: ', err);
@@ -100,10 +93,12 @@ export const GetPlanningNotes = function (req, res) {
  * @depends mainDB
  * @access  private
  */
-export const AddPlanningNotes = function (req, res) {
+export const AddPlanningNotes = async function (req, res) {
     const { date, note } = req.body;
+    console.log(note);
+
     try {
-        addNoteWithDate(date, note)
+        await modifyOrAddNote(date, note)
         res.status(200).send('Notes added');
     }
     catch (err) {
@@ -136,10 +131,10 @@ export const AddPlanningNotes = function (req, res) {
  * @depends mainDB
  * @access  private
  */
-export const AddPlanning = function (req, res) {
-    const { alldata } = req.body;
+export const AddPlanning = async function (req, res) {
+    const { data } = req.body;
     try {
-        addPlanning(alldata)
+        await addPlanning(data)
         res.status(200).send('Planning added');
     } catch (err) {
         console.error('Error while adding planning: ', err);
@@ -149,7 +144,15 @@ export const AddPlanning = function (req, res) {
 }
 
 export const modifyPlanningData = async (req, res) => {
-
+    const { data } = req.body
+    try {
+        await modifyPlanning(data)
+        res.status(200).send('Planning modified');
+    } catch (err) {
+        console.error('Error while modifying planning: ', err.stack);
+        res.status(500).send('Internal server error');
+        return;
+    }
 }
 
 /**
@@ -184,10 +187,10 @@ export const modifyPlanningData = async (req, res) => {
  * @depends mainDB
  * @access  private
  */
-export const DeletePlanning = function (req, res) {
+export const DeletePlanning = async function (req, res) {
     const { data } = req.body;
     try {
-        deletePlanning(data)
+        await deletePlanning(data)
         res.status(200).send('Planning deleted');
     } catch (err) {
         console.error('Error while deleting planning: ', err);

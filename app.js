@@ -8,11 +8,13 @@ import loginRouter from './routes/login.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
-import { createTable } from './lib/database.js';
-import { createUserTable } from './lib/logindb.js';
+import { createTable } from './lib/maindb.js';
+import { createUserTable } from './lib/userdb.js';
 import { createSavedTable } from './lib/savedb.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { checkOldPlanning, checkPlanningRecurrence } from './services/PlanningService.js';
+import { checkRecurrenceStartDates } from './services/ReccurenceService.js';
 // import { savePlanning } from './utils/storeToSaveDB.js';
 // import { checkAll } from './utils/checkAll.js';
 
@@ -44,6 +46,9 @@ app.use(express.static(path.join(__dirname, 'dist')));
 createTable();
 createUserTable();
 createSavedTable();
+checkRecurrenceStartDates()
+checkOldPlanning()
+checkPlanningRecurrence()
 
 app.use(json());
 

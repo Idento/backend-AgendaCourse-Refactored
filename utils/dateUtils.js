@@ -1,4 +1,4 @@
-import { parse, format, startOfDay, addWeeks, isEqual, differenceInDays, isBefore } from 'date-fns';
+import { parse, format, startOfDay, addWeeks, isEqual, differenceInDays, isBefore, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 // Parser une date selon un format spécifique
@@ -24,7 +24,11 @@ export function isToday(date) {
 
 export function isOlderThanToday(date) {
     const parsed = startOfDay(parseToDate(date))
-    return isBefore(parsed, new Date())
+    return isBefore(parsed, startOfDay(new Date()))
+}
+
+export function toUTC(date) {
+    return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
 }
 
 // Savoir si la date passer en argument est supérieur de 30 jours

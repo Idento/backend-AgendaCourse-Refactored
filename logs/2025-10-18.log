@@ -1,0 +1,95 @@
+[2025-10-18 11:00:27] INFO — Database Database.db opened successfully.
+[2025-10-18 11:00:27] INFO — Database archive.db opened successfully.
+[2025-10-18 11:00:27] INFO — Database user.db opened successfully.
+[2025-10-18 11:00:29] INFO — 📅 Tâche de checkpoint + fermeture planifiée à 3h25 (Europe/Paris)
+[2025-10-18 11:00:29] INFO — Listening on port 3001
+[2025-10-18 11:00:29] INFO — m5iA:Jxg#[b.#,N.
+[2025-10-18 11:02:51] INFO — a user connected
+[2025-10-18 11:03:56] INFO — Database Database.db opened successfully.
+[2025-10-18 11:03:56] INFO — Database archive.db opened successfully.
+[2025-10-18 11:03:56] INFO — Database user.db opened successfully.
+[2025-10-18 11:03:56] INFO — 📅 Tâche de checkpoint + fermeture planifiée à 3h25 (Europe/Paris)
+[2025-10-18 11:03:56] INFO — Listening on port 3001
+[2025-10-18 11:03:57] INFO — a user connected
+[2025-10-18 11:04:02] INFO — a user connected
+[2025-10-18 11:04:02] INFO — ajout de l'intervalle homeUpdate
+[2025-10-18 11:04:02] INFO — user disconnected
+[2025-10-18 11:04:02] INFO — homeUpdate cleared
+[2025-10-18 11:06:13] INFO — a user connected
+[2025-10-18 11:06:13] INFO — ajout de l'intervalle homeUpdate
+[2025-10-18 11:06:13] INFO — user disconnected
+[2025-10-18 11:06:13] INFO — homeUpdate cleared
+[2025-10-18 11:07:06] INFO — Database Database.db opened successfully.
+[2025-10-18 11:07:06] INFO — Database archive.db opened successfully.
+[2025-10-18 11:07:06] INFO — Database user.db opened successfully.
+[2025-10-18 11:07:06] INFO — 📅 Tâche de checkpoint + fermeture planifiée à 3h25 (Europe/Paris)
+[2025-10-18 11:07:06] INFO — Listening on port 3001
+[2025-10-18 11:07:10] INFO — a user connected
+[2025-10-18 11:07:23] INFO — a user connected
+[2025-10-18 11:07:23] INFO — ajout de l'intervalle homeUpdate
+[2025-10-18 11:07:23] INFO — user disconnected
+[2025-10-18 11:07:23] INFO — homeUpdate cleared
+[2025-10-18 11:07:44] INFO — a user connected
+[2025-10-18 11:07:44] INFO — ajout de l'intervalle homeUpdate
+[2025-10-18 11:07:44] INFO — user disconnected
+[2025-10-18 11:07:44] INFO — homeUpdate cleared
+[2025-10-18 11:08:21] INFO — a user connected
+[2025-10-18 11:08:21] INFO — ajout de l'intervalle homeUpdate
+[2025-10-18 11:08:57] INFO — user disconnected
+[2025-10-18 11:08:57] INFO — homeUpdate cleared
+[2025-10-18 11:08:59] INFO — a user connected
+[2025-10-18 11:08:59] INFO — ajout de l'intervalle homeUpdate
+[2025-10-18 11:09:48] INFO — user disconnected
+[2025-10-18 11:09:48] INFO — homeUpdate cleared
+[2025-10-18 11:09:49] INFO — a user connected
+[2025-10-18 11:09:49] INFO — ajout de l'intervalle homeUpdate
+[2025-10-18 11:10:19] INFO — user disconnected
+[2025-10-18 11:10:19] INFO — homeUpdate cleared
+[2025-10-18 11:10:19] INFO — a user connected
+[2025-10-18 11:10:19] INFO — user disconnected
+[2025-10-18 11:10:19] INFO — homeUpdate cleared
+[2025-10-18 11:11:16] INFO — a user connected
+[2025-10-18 11:11:16] INFO — ajout de l'intervalle homeUpdate
+[2025-10-18 11:11:19] INFO — user disconnected
+[2025-10-18 11:11:19] INFO — homeUpdate cleared
+[2025-10-18 11:12:44] INFO — Database Database.db opened successfully.
+[2025-10-18 11:12:44] INFO — Database archive.db opened successfully.
+[2025-10-18 11:12:44] INFO — Database user.db opened successfully.
+[2025-10-18 11:12:44] INFO — 📅 Tâche de checkpoint + fermeture planifiée à 3h25 (Europe/Paris)
+[2025-10-18 11:12:44] INFO — Listening on port 3001
+[2025-10-18 11:16:57] INFO — Database Database.db opened successfully.
+[2025-10-18 11:16:57] INFO — Database archive.db opened successfully.
+[2025-10-18 11:16:57] INFO — Database user.db opened successfully.
+[2025-10-18 11:16:57] INFO — 📅 Tâche de checkpoint + fermeture planifiée à 3h25 (Europe/Paris)
+[2025-10-18 11:16:57] INFO — Listening on port 3001
+[2025-10-18 11:32:19] INFO — Database Database.db opened successfully.
+[2025-10-18 11:32:19] INFO — Database archive.db opened successfully.
+[2025-10-18 11:32:19] INFO — Database user.db opened successfully.
+[2025-10-18 11:32:21] INFO — 📅 Tâche de checkpoint + fermeture planifiée à 3h25 (Europe/Paris)
+[2025-10-18 11:32:21] INFO — Listening on port 3001
+[2025-10-18 11:32:32] INFO — a user connected
+[2025-10-18 11:32:32] INFO — ajout de l'intervalle homeUpdate
+[2025-10-18 11:32:57] INFO — user disconnected
+[2025-10-18 11:32:57] INFO — homeUpdate cleared
+[2025-10-18 11:32:57] INFO — a user connected
+[2025-10-18 11:32:57] INFO — user disconnected
+[2025-10-18 11:32:57] INFO — homeUpdate cleared
+[2025-10-18 11:33:38] INFO — a user connected
+[2025-10-18 11:33:38] INFO — ajout de l'intervalle homeUpdate
+[2025-10-18 11:33:40] INFO — user disconnected
+[2025-10-18 11:33:40] INFO — homeUpdate cleared
+[2025-10-18 11:33:40] INFO — a user connected
+[2025-10-18 11:33:40] INFO — ajout de l'intervalle homeUpdate
+[2025-10-18 13:03:20] ERROR — Error while adding data:  TypeError: Cannot read properties of undefined (reading 'success')
+[2025-10-18 13:50:10] ERROR — Error while fetching notes:  ReferenceError: data is not defined
+[2025-10-18 14:24:51] ERROR — Error while fetching notes:  ReferenceError: data is not defined
+[2025-10-18 14:28:44] ERROR — Error while fetching notes:  ReferenceError: data is not defined
+[2025-10-18 14:32:48] ERROR — Error while fetching notes:  ReferenceError: data is not defined
+[2025-10-18 14:34:43] ERROR — Error while fetching notes:  ReferenceError: data is not defined
+[2025-10-18 14:35:48] ERROR — Error while fetching notes:  ReferenceError: data is not defined
+[2025-10-18 14:55:24] ERROR — Error while adding data:  TypeError: Cannot read properties of undefined (reading 'match')
+[2025-10-18 15:05:35] ERROR — Error while adding notes:  SqliteError: UNIQUE constraint failed: notes.date
+[2025-10-18 15:08:33] ERROR — Error while adding notes:  SqliteError: UNIQUE constraint failed: notes.date
+[2025-10-18 15:11:15] ERROR — Error while adding notes:  ReferenceError: modifyOrAddNote is not defined
+[2025-10-18 15:14:40] ERROR — Error while fetching notes:  TypeError: date.push is not a function
+[2025-10-18 15:15:58] ERROR — Error while fetching notes:  TypeError: Cannot read properties of undefined (reading 'length')

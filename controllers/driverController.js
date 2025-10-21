@@ -1,5 +1,5 @@
-import { getAllDrivers } from "../services/DriverService";
-import { getDriverPlanningByDateService } from "../services/PlanningService";
+import { getAllDrivers } from "../services/DriverService.js";
+import { getDriverPlanningByDateService } from "../services/PlanningService.js";
 
 
 /**
@@ -12,9 +12,9 @@ import { getDriverPlanningByDateService } from "../services/PlanningService";
  * @access private
  * @depends maindb
  */
-export const GetDriverData = function (req, res) {
+export const GetDriverData = async function (req, res) {
     try {
-        const data = getAllDrivers()
+        const data = await getAllDrivers()
         res.status(200).json(data);
     } catch (err) {
         console.error('Error while fetching data: ', err);
@@ -37,10 +37,10 @@ export const GetDriverData = function (req, res) {
  *          - Renvoie les données dans un tableau
  * @errors  - "id invalide"
  */
-export const GetDriverPlanning = function (req, res) {
+export const GetDriverPlanning = async function (req, res) {
     const { id } = req.params;
     try {
-        const data = getDriverPlanningByDateService(id);
+        const data = await getDriverPlanningByDateService(id);
         res.status(200).json(data);
     } catch (err) {
         console.error('Error while fetching data: ', err);
@@ -68,12 +68,11 @@ export const GetDriverPlanning = function (req, res) {
  * BODY {date: '25/05/2025'}
  */
 
-export const GetDriverPlanningByDate = function (req, res) {
-    const planningDb = db.planning;
+export const GetDriverPlanningByDate = async function (req, res) {
     const { id } = req.params;
     const { date } = req.body;
     try {
-        const data = getDriverPlanningByDateService(id, date)
+        const data = await getDriverPlanningByDateService(id, date)
         res.status(200).json(data);
     } catch (err) {
         console.error('Error while fetching data: ', err);

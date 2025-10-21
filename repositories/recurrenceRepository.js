@@ -1,4 +1,4 @@
-import { db } from "../lib/allDb";
+import { db } from "../lib/allDb.js";
 
 const recurrenceDb = db.main
 
@@ -22,7 +22,7 @@ export function updateReccurenceDaysWithId(start_date, next_day, id) {
     return recurrenceDb.prepare('UPDATE recurrence SET start_date = ?, next_day = ? WHERE id = ?').run(start_date, next_day, id)
 }
 
-export function updateRecurrenceWithId(frequency, start_date, next_day, id) {
+export function updateRecurrenceWithId({ frequency, start_date, next_day, id }) {
     return recurrenceDb.prepare('UPDATE recurrence SET frequency = ?, start_date = ?, next_day = ? WHERE id = ?').run(frequency, start_date, next_day, id)
 }
 

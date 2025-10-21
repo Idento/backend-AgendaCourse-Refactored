@@ -1,4 +1,4 @@
-import { db } from "../lib/allDb";
+import { db } from "../lib/allDb.js";
 
 const excludedDb = db.main
 

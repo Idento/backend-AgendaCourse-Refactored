@@ -1,8 +1,3 @@
-import Database from "better-sqlite3";
-import bcrypt from "bcrypt";
-import generatePassword from "../utils/generatePassword.js";
-
-
 /**
  * @route   POST /login
  * @desc    Répond a la demande de login si celle ci est positive et fourni les information de session
