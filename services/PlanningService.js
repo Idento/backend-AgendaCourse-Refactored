@@ -9,7 +9,19 @@ import { createExcludeDays, createRecurrence, deleteRecurrenceService, modifyRec
 import { generateNextDatesWithoutExcludeDays, generateNextDates } from '../utils/recurrenceUtils.js'
 import { isBefore } from 'date-fns'
 
-
+/**
+ * Récupération du planning d'aujourd'hui ou de la semaine suivant la date donnée
+ * @param {boolean} week 
+ * @param {string} date 
+ * - Récupération de tous les chauffeurs
+ * - Si on veux récupérer toute une semaine week = true:
+ *      - on récupère toutes les dates concerné par cette fonction sur une semaine
+ *      - On boucle dessus afin de rechercher chaque date dans la base de donnée
+ *      - On push les données dans un tableau sous le format désiré
+ * - Sinon on récupère le planning d'aujourd'hui
+ * - et on renvoie les données sous le format désiré
+ * @returns {Promise<object[]/>}
+ */
 export async function getPlanning(week = false, date = '') {
     const drivers = await getAllDrivers() || []
     if (week) {
@@ -28,6 +40,12 @@ export async function getPlanning(week = false, date = '') {
     }
 }
 
+/**
+ * Récupération du planning d'aujourd'hui via le cache du serveur
+ * - Si le cache est présent on l'envoi
+ * - Sinon le cache a été invalidé et donc on récupère les données dans la bdd afin d'avoir les nouvelles données
+ * @returns {Promise<object[]/>}
+ */
 export async function getPlanningCache() {
     if (planningCache.has('plannings')) return planningCache.get('plannings')
 
@@ -36,29 +54,69 @@ export async function getPlanningCache() {
     return plannings
 }
 
+/**
+ * Invalidation du cache
+ */
 export function invalidatePlanningCache() {
     planningCache.delete('plannings')
 }
 
+
+/**
+ * Récupération du planning du chauffeur en fonction de son identifiant base de donnée a la date voulu ou aujourd'hui
+ * @param {number} driver_id 
+ * @param {string} date 
+ * @returns {Promise}
+ */
 export async function getDriverPlanningByDateService(driver_id, date = '') {
     const dateForPlanning = date.length > 0 ? date : formatToDate(new Date())
     return planningRepo.selectAllPlanningByDriverIdAndDate(driver_id, dateForPlanning)
 }
 
+/**
+ * Récupération du planning antérieur à aujourd'hui
+ * @param {string} date 
+ * - Récupération des chauffeurs
+ * - Récupération du planning
+ * - Envoi du tout afin de pouvoir combiner les données
+ * @returns {Promise<object/>}
+ */
 export async function getHistoryPlanning(date) {
     const drivers = await getAllDrivers()
     const planningData = planningRepo.selectAllPlanningByDate(date)
     return { data: planningData, drivers }
 }
 
+/**
+ * Récupération d'une ligne du planning en fonction de l'identifiant de recurrence
+ * @param {number} id 
+ * @returns {object}
+ */
 export function getDataPlanningForReccurenceCheck(id) {
     return planningRepo.selectOnePlanningByReccurenceId(id)
 }
 
+/**
+ * Insertion du planning dans la base de donnée
+ * @param {object} data 
+ */
 export async function addSimplePlanning(data) {
     planningRepo.insertNewPlanningWithRecurrence(data)
 }
 
+
+/**
+ * Ajout d'un nouveau planning dans la base de donnée
+ * @param {object[]} data 
+ * - Boucle sur le tableau d'objet a ajouté 
+ * - Destructuration de l'objet a l'intérieur du tableau pour récupération des données
+ * - Si une frequence (de recurrence) est détecter:
+ *      - On créer une récurrence, on récupère les dates générer par le service de recurrence
+ *      - Et on map ces dates afin d'y ajouter les données
+ *      - Enfin insertion de toutes les dates/données dans la base de donnée
+ * - Sinon simple ajout de la course dans la base de donnée
+ * @returns {Promise<object/>}
+ */
 export async function addPlanning(data) {
     const success = []
     const failed = []
@@ -96,6 +154,18 @@ export async function addPlanning(data) {
     return { success, failed }
 }
 
+
+/**
+ * Fonction de changement de la récurrence associé a son id
+ * @param {number} recurrence_id 
+ * @param {string} date 
+ * @param {string || object[]} frequency 
+ * @param {object} data 
+ * - Génération des nouvelles dates en fonction de la date donnée => retourne des dates a ajoutées et d'autre a supprimer
+ * - Supression des dates qui ne correspondent plus a la recurrence en fonction de l'id de la récurrence
+ * - Pour les dates a ajouté dans la bdd, on itère sur elles afin de rajouter les données a insérer dans la bdd
+ * - Insertion de toutes les dates a ajoutés a la bdd
+ */
 export function handleChangeRecurrence(recurrence_id, date, frequency, data) {
     const newRecurrence = modifyRecurrence(recurrence_id, date, frequency)
     const dataToDelete = newRecurrence.toDelete.map((item) => ({ date: item, recurrence_id: newRecurrence.id }))
@@ -104,6 +174,30 @@ export function handleChangeRecurrence(recurrence_id, date, frequency, data) {
     planningRepo.insertManyNewPlanningsWithRecurrence(dataToInsert)
 }
 
+/**
+ * Modification d'une course dans le planning
+ * @param {object} data 
+ * - Si changement de date avec changement de recurrence, on recalcule les recurrence:
+ *      - Si la nouvelle date est avant la prochaine date reccurente, on calcule a partir de la nouvelle date
+ *      - Sinon on calcule a partir de la prochaine date recurrence
+ * - Sinon Si juste la fréquence a changer:
+ *      - Si le tableau de recurrence est vide:
+ *          - On supprime toutes les courses recurrente a partir de cette date
+ *          - on supprime la recurrencce
+ *      - Sinon si il n'y avait pas recurrence sur cette course et que maintenant il y en a:
+ *          - On créer la recurrence avec la fonction dédié a ca
+ *      - Sinon on recalcule juste la recurrence
+ * - Sinon si la recurrence n'as pas bougé:
+ *      - Si on change la date et que cette course a une recurrence:
+ *          - on update la course avec la nouvelle date
+ *          - on exclu l'ancienne date des dates possible pour cette récurrence
+ *      - Sinon si juste la date change sans qu'il y ai de recurrence:
+ *          - on met a jour avec la nouvelle date
+ *      - Sinon c'est juste un autre changement qui ne concerne pas les dates:
+ *          - on update la course
+ * - Renvoie d'un string
+ * @returns {Promise<string/>}
+ */
 export async function modifyPlanning(data) {
     const { id, driver_id, date, client_name, start_time, return_time, note, destination, long_distance, recurrence_id, frequency, newDate } = data
     const dbRecurrenceData = recurrenceRepo.selectWithId(recurrence_id)
@@ -169,6 +263,18 @@ export async function modifyPlanning(data) {
     return result
 }
 
+/**
+ * Supression d'une course dans le planning
+ * @param {object} data 
+ * - Si on veux supprimer la recurrence en même temps que la course:
+ *      - Supression de la course avec son id
+ *      - Suppression de la recurrence
+ * - Sinon si on veux pas supprimer la recurrence mais qu'il y en as une:
+ *      - On exclue la date qu'on supprime dans les dates possibles de cette recurrence
+ *          - Si la ligne a supprimer concerne la start_date ou next_day, on recalcule la recurrence
+ * - Sinon on supprime la course
+ * @returns 
+ */
 export async function deletePlanning(data) {
     const { id, deleteRecurrence } = data
     const line = planningRepo.selectPlanningById(id)
@@ -198,6 +304,11 @@ export async function deletePlanning(data) {
     return result
 }
 
+/**
+ * Vérification au démarrage 
+ * -> De toutes la table planning pour que les dates qui sont passé, ne soit pas pris en compte dans les recurrences, sans être supprimer
+ * on met juste la recurrence_id a 0 pour celles-ci
+ */
 export function checkOldPlanning() {
     const plannings = planningRepo.selectPlanningWithRecurrence()
     for (const planning of plannings) {
@@ -207,6 +318,21 @@ export function checkOldPlanning() {
     }
 }
 
+/**
+ * Vérification de toutes les récurrences au démarrage et modification/ajout/supression dans le planning en fonction
+ * - Boucle sur toutes les recurrences:
+ *      - Sélection de toutes les courses contenant la recurrence id sur la boucle actuel
+ *      - Si il n'y a pas de course avec une date correspondant au début de la recurrence ET que cette date n'est pas exclus:
+ *          - On insère une course a cette date là
+ *      - Si il n'y a pas de jours exclus et qu'il y a déjà des courses de cette récurrence:
+ *          - on génére les dates normalement présente
+ *          - On boucle sur les dates générer:
+ *              - Si la date normalement dans le planning n'y est pas on la rajoute dans la base de donnée
+ *      - Sinon si il y a des jours exclus dans cette recurrence et qu'il y a déjà des courses dans le planning pour cette récurrence:
+ *          - on génère les dates en excluant celle qui sont exclus
+ *          - On ajoute les dates manquantes
+ *      - Sinon si il y a pas de course qui conerne une recurrence, on l'as supprime, elle ne devrait pas être là
+ */
 export function checkPlanningRecurrence() {
     const allRecurrence = recurrenceRepo.selectAll()
     for (const reccurence of allRecurrence) {

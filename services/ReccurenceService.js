@@ -8,6 +8,15 @@ import { selectAllPlanningByRecurrenceId } from '../repositories/planningReposit
 import { startOfDay } from 'date-fns'
 
 
+/**
+ * Création d'une récurrence et ajout en base de donnée
+ * @param {string} start_date 
+ * @param {string || object[]} weekdays 
+ * - Génération des prochaines dates de la récurrences
+ * - Insertion de la date initial et de la prochaine date de la recurrence ainsi que sa fréquence
+ * - Renvoie des dates des jours de recurrence
+ * @returns {object}
+ */
 export function createRecurrence(start_date, weekdays) {
     const frequency = toArray(weekdays)
     if (!Array.isArray(frequency)) throw new Error('weekdays is not an array')
@@ -16,6 +25,14 @@ export function createRecurrence(start_date, weekdays) {
     return { recurrence_id: insertedRecurrence.lastInsertRowid, allDays: nextDays }
 }
 
+/**
+ * Ajouter des dates exclus d'une recurrence
+ * @param {number} recurrence_id 
+ * @param {string} date 
+ * - Vérification si il y a des dates déjà exclus
+ * - Si non insertion
+ * - Si oui update
+ */
 export function createExcludeDays(recurrence_id, date) {
     const exists = excludedRepo.selectExcludedWithRecurrenceId(recurrence_id)
     if (!exists) {
@@ -27,6 +44,21 @@ export function createExcludeDays(recurrence_id, date) {
     }
 }
 
+
+/**
+ * Modification de récurrence déjà présente
+ * @param {number} id 
+ * @param {string} start_date 
+ * @param {string || object[]} weekDays 
+ * - Génération des dates selon la nouvelle date passer
+ * - Génération des dates selon l'ancienne date
+ * - Vérification de potentiel date exclus
+ * - tri des dates a ajouter, les dates a ajouter ne doivent pas être presente dans les anciennes dates ni dans les exclus
+ * - tri des dates a supprimer, elles ne doivent pas être dans les nouvelles dates
+ * - On vérifie que le next_day n'est pas exclus sinon on prend encore la prochaine date
+ * - On renvoie l'id de la recurrence modifié, les dates a ajouter et les dates a supprimer
+ * @returns 
+ */
 export function modifyRecurrence(id, start_date, weekDays) {
     const frequency = toArray(weekDays)
     if (!Array.isArray(frequency)) throw new Error('weekdays is not an array')
@@ -49,11 +81,30 @@ export function modifyRecurrence(id, start_date, weekDays) {
     return { id, toAdd, toDelete }
 }
 
+/**
+ * Supression de recurrence
+ * @param {number} id 
+ * Supression de la recurrence en fonction de son id
+ * et supression des jours exclus pour cette recurrence
+ */
 export function deleteRecurrenceService(id) {
     recurrenceRepo.deleteRecurrenceWithId(id)
     excludedRepo.deleteExcludedWithReccurenceId(id)
 }
 
+/**
+ * Vérification au démarrage si la start_date est plus ancienne qu'aujourd'hui
+ * - Récupération de toutes les recurrences
+ * - Boucles sur les récurrences
+ * - Si la start_date est plus ancienne qu'aujourd'hui:
+ *      - Si pas de data pour ajouter les planning, renvoie l'erreur
+ *      - Si le next_day n'est pas plus vieux qu'aujourd'hui :
+ *          -on modifie la recurrence a partir de cette date
+ *      - Sinon SI next_day est dépasser:
+ *          - Initialisation d'une boucle while avec sécurité de 10 essaie
+ *          - Dans la boucle on génère des dates, jusqu'a arriver a une date supérieur ou égale
+ *          - une fois que c'est fait on modifie la recurrence a partir de cette date
+ */
 export function checkRecurrenceStartDates() {
     const allRecurrence = recurrenceRepo.selectAll()
     for (const recurrence of allRecurrence) {
