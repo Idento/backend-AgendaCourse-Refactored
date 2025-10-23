@@ -4,17 +4,17 @@ import { getDriverPlanningByDateService } from "../services/PlanningService.js";
 
 /**
  * @route   GET driver/get
- * @desc    Récupère tous les chauffeurs depuis la bdd principale, table driver
+ * @desc    Récupère tous les chauffeurs
+ * @access private
  * @output  [
  *              {driver_id: }
  *          ]
- * @logic   - Récupère tous les conducteurs
- * @access private
- * @depends maindb
+ * @logic   -Récupère tous les chauffeurs
  */
 export const GetDriverData = async function (req, res) {
     try {
         const data = await getAllDrivers()
+        console.log(data);
         res.status(200).json(data);
     } catch (err) {
         console.error('Error while fetching data: ', err);
@@ -32,10 +32,7 @@ export const GetDriverData = async function (req, res) {
  * @output  [
  *              [{driver_id: 5}]
  *          ]
- * @logic   - Récupère la date d'aujourd'hui
- *          - Récupère en bdd les informations en fonction des paramètres date et id
- *          - Renvoie les données dans un tableau
- * @errors  - "id invalide"
+ * @logic   - Renvoie les données dans un tableau
  */
 export const GetDriverPlanning = async function (req, res) {
     const { id } = req.params;
@@ -53,19 +50,16 @@ export const GetDriverPlanning = async function (req, res) {
 /**
  * @route   POST driver/getdriverplanning/:id
  * @desc    Récupère les courses a partir de l'id d'un chauffeur et d'une date spécifique
+ * @access  private
+ * 
  * @input   Params {Number} id - Identification du chauffeur
  * @input   Body {String} date - Date voulu pour la récupération des courses
+ * 
  * @output  [
  *              {driver_id: 5, ...course},
  *              {driver_id: 5, ...course}
  *          ]
- * @logic   - Récupération de l'id du chauffeur dans les paramètres de la requête
- *          - Récupération de la date voulu dans le body, pour la recherche
- * @errors  ''
- * @access  private
- * @example 
- * POST /driver/getdriverplanning/:5
- * BODY {date: '25/05/2025'}
+ * @logic   - En fonction des input, récupèration du planning
  */
 
 export const GetDriverPlanningByDate = async function (req, res) {

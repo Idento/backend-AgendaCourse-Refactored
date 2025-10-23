@@ -3,17 +3,12 @@ import { modifyOrAddNote, getWeekNotes } from "../services/NoteService.js";
 
 /**
  * @route   GET plannings/get
- * @desc    Récupère toutes les course de la semaine suivante
+ * @desc    Récupère toutes les courses de la semaine a partir de demain
  * @output  [
  *              {driver_id: 5, ...course},
  *              {driver_id: 5, ...course}
  *          ]
- * @logic   -Récupère tous les jours de la semaine a partir de demain
- *          -Récupère tous les chauffeurs
- *          -Récupère toutes les courses de la semaine
- *          -Combine les courses et les chauffeurs dans les journées
- *          -Renvoie un tableau d'objet contenant date, courses de la journée et chauffeur
- * @depends mainDB
+ * @logic   -Renvoie un tableau d'objet contenant date, courses de la journée et chauffeur
  * @access  private
  */
 export const GetPlanning = async function (req, res) {
@@ -21,7 +16,7 @@ export const GetPlanning = async function (req, res) {
         const data = await getPlanning(true)
         res.status(200).json(data);
     } catch (err) {
-        console.error('Error while fetching planning: ', err);
+        console.error('Error while fetching planning: ', err.stack);
         res.status(500).send('Internal server error');
         return;
     }
@@ -36,12 +31,7 @@ export const GetPlanning = async function (req, res) {
  *              { ...course, ...driver},
  *              { ...course, ...driver}
  *          ]
- * @logic   -Récupère tous les jours de la semaine a partir de la date recu
- *          -Récupère tous les chauffeurs
- *          -Récupère toutes les courses de la semaine
- *          -Combine les courses et les chauffeurs dans les journées
- *          -Renvoie un tableau d'objet contenant date, courses de la journée et chauffeur
- * @depends mainDB
+ * @logic  -Renvoie un tableau d'objet contenant date, courses de la journée et chauffeur
  * @access  private
  */
 export const GetPlanningNextDates = async function (req, res) {
@@ -50,7 +40,7 @@ export const GetPlanningNextDates = async function (req, res) {
         const data = await getPlanning(true, date)
         res.status(200).json(data);
     } catch (err) {
-        console.error('Error while fetching planning: ', err);
+        console.error('Error while fetching planning: ', err.stack);
         res.status(500).send('Internal server error');
         return;
     }
@@ -59,16 +49,14 @@ export const GetPlanningNextDates = async function (req, res) {
 
 /**
  * @route   POST plannings/getNotes
- * @desc    Récupère toutes les course de la semaines
+ * @desc    Récupère toutes les courses de la semaine
+ * @access  private
  * @input   BODY {dates: ['25/05/2025', '26/05/2025']}
  * @output  [
  *              {dates: '25/05/2025', notes:''},
  *              {dates: '26/05/2025', notes:''}
  *          ]
- * @logic   -Récupère tous les jours de la semaine dans le body
- *          -Récupère toutes les notes de la semaines
- * @depends mainDB
- * @access  private
+ * @logic   -Récupère toutes les notes de la semaines
  */
 export const GetPlanningNotes = async function (req, res) {
     const { dates } = req.body;
@@ -77,7 +65,7 @@ export const GetPlanningNotes = async function (req, res) {
         console.log('note planning', data);
         res.status(200).json(data);
     } catch (err) {
-        console.error('Error while fetching notes: ', err);
+        console.error('Error while fetching notes: ', err.stack);
         res.status(500).send('Internal server error');
         return;
     }
@@ -86,12 +74,12 @@ export const GetPlanningNotes = async function (req, res) {
 /**
  * @route   POST plannings/addNote
  * @desc    Ajoute ou modifie une note de la semaine
+ * @access  private
+ * 
  * @input   {date: 25/05/2025, notes:'pensez a ca'}
  * @output  'note added'
- * @logic   -Récupère tous les jours de la semaine a partir de demain
- *          -Récupère toutes les courses de la semaine
- * @depends mainDB
- * @access  private
+ * @logic   - Ajoute une note au jour de la semaine mentionner
+ * 
  */
 export const AddPlanningNotes = async function (req, res) {
     const { date, note } = req.body;
@@ -102,7 +90,7 @@ export const AddPlanningNotes = async function (req, res) {
         res.status(200).send('Notes added');
     }
     catch (err) {
-        console.error('Error while adding notes: ', err);
+        console.error('Error while adding notes: ', err.stack);
         res.status(500).send('Internal server error');
         return;
     }
@@ -111,25 +99,15 @@ export const AddPlanningNotes = async function (req, res) {
 /**
  * @route   POST plannings/add
  * @desc    Récupère toutes les course de la semaine a partir de la date sélectionner
+ * @access  private
  * @input   BODY {
- *                  alldata:[
+ *                  data:[
  *                      {...course}
  *                  ]
  *              }
  * 
  * @output  'Planning added'
- * @logic   -Récupère tous les jours de la semaine a partir de la date suivante si 
- *              celle ci dans les data sinon on recherche a partir de la première date envoyé
- *          -Récupère le planning a partir des dates récupérer
- *          -stockage des ids des plannings récupérer
- *          -Itèrer sur le tableau de donnée recu, extraction des données et formatage de la fréquence:
- *              string tableau => tableau
- *              -Comparaison de l'id de la donnée itérer avec celles du planning extraite de la bdd
- *                  Si la course existe dans le planning, on la modifie (également calcul recurrence au cas ou celle ci ai changer)
- *                  Sinon on ajoute la course et on calcul la récurrence si présente
- *          -Répond avec un string
- * @depends mainDB
- * @access  private
+ * @logic   - Répond avec un string et ajoute en db la course (Possibilité d'ajouter plusieurs courses a la fois si le frontend est améliorer)
  */
 export const AddPlanning = async function (req, res) {
     const { data } = req.body;
@@ -137,12 +115,21 @@ export const AddPlanning = async function (req, res) {
         await addPlanning(data)
         res.status(200).send('Planning added');
     } catch (err) {
-        console.error('Error while adding planning: ', err);
+        console.error('Error while adding planning: ', err.stack);
         res.status(500).send('Internal server error');
         return;
     }
 }
 
+/**
+ * @route   POST plannings/modify
+ * @desc    Modifier une course existante
+ * @access  private
+ * @input   BODY {data: {...course}}
+ * 
+ * @output  'Planning modified'
+ * @logic   - Répond avec un string et modifie en db la course
+ */
 export const modifyPlanningData = async (req, res) => {
     const { data } = req.body
     try {
@@ -158,34 +145,13 @@ export const modifyPlanningData = async (req, res) => {
 /**
  * @route   DELETE plannings/delete
  * @desc    Supprimer une course de la semaine
- * @input   BODY {
- *                  data:[
- *                      {...course}
- *                  ]
- *              }
- * 
- * @output  'Planning deleted'
- * @logic   -Récupère les données de l'input 
- *          -Recherche la course concerné dans la db
- *          -Condition de suppression:
- *              Si il y a une id de recurrence et pas d'intention de supression de recurrence:
- *                  Si la date de la course a supprimer est dans le tableau de recurrences (nextday)
- *                      - Recalcule de la récurrence
- *                  Sinon si pas dans le tableau de recurrences mais recurrente quand même
- *                      - Ajout de la date dans la db des jours exclus
- *              Sinon si on dois supprimer la recurrence
- *                  - Récupération de toutes les courses ayant l'id de la récurrence
- *                  - Itération sur celles ci:
- *                      Si la date est inférieur a la date de course qu'on veux supprimer
- *                          - Modification de l'id de reccurence de la course a 0
- *                      Sinon
- *                          - Supression de la course
- *                  - Supression de la recurrence dans la db recurrence
- *                  - Supression de la recurrence dans la db des jours exclus
- *              - Supression de la course envoyé par l'utilisateur
- *          - Réponse envoyé
- * @depends mainDB
  * @access  private
+ * @input   BODY { 
+ *              data: 
+ *                  { id: 5, deleteRecurrence: false || true } 
+ *               }
+ * @output  'Planning deleted'
+ * @logic   - Supprime une course et en fonction de deleteRecurrence, sa recurrence aussi, si existante.
  */
 export const DeletePlanning = async function (req, res) {
     const { data } = req.body;
@@ -193,7 +159,7 @@ export const DeletePlanning = async function (req, res) {
         await deletePlanning(data)
         res.status(200).send('Planning deleted');
     } catch (err) {
-        console.error('Error while deleting planning: ', err);
+        console.error('Error while deleting planning: ', err.stack);
         res.status(500).send('Internal server error');
         return;
     }

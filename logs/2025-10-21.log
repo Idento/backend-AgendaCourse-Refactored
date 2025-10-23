@@ -53,3 +53,26 @@
     at Route.dispatch (D:\Web Projects\backend AgendaCourse Refactored\node_modules\express\lib\router\route.js:119:3)
     at Layer.handle [as handle_request] (D:\Web Projects\backend AgendaCourse Refactored\node_modules\express\lib\router\layer.js:95:5)
     at D:\Web Projects\backend AgendaCourse Refactored\node_modules\express\lib\router\index.js:284:15
+[2025-10-21 13:03:23] ERROR — Error while adding driver:  Error: Driver already exists
+[2025-10-21 13:34:36] ERROR — Error while fetching data:  ReferenceError: none is not defined
+[2025-10-21 13:34:36] ERROR — Error while fetching data:  ReferenceError: none is not defined
+[2025-10-21 13:36:18] ERROR — Error while fetching data:  ReferenceError: item is not defined
+[2025-10-21 13:36:24] ERROR — Error while fetching data:  ReferenceError: item is not defined
+[2025-10-21 13:36:24] ERROR — Error while fetching data:  ReferenceError: item is not defined
+[2025-10-21 13:36:30] ERROR — Error while fetching data:  ReferenceError: item is not defined
+[2025-10-21 13:36:30] ERROR — Error while fetching data:  ReferenceError: item is not defined
+[2025-10-21 13:41:22] ERROR — Error while regenerating password:  TypeError: SQLite3 can only bind numbers, strings, bigints, buffers, and null
+[2025-10-21 13:45:23] ERROR — Error while regenerating password:  TypeError: SQLite3 can only bind numbers, strings, bigints, buffers, and null
+[2025-10-21 15:35:19] ERROR — Error while adding data:  SqliteError: UNIQUE constraint failed: notes.date
+[2025-10-21 15:39:26] ERROR — Error while adding data:  SqliteError: UNIQUE constraint failed: notes.date
+[2025-10-21 15:39:58] ERROR — Error while adding data:  SqliteError: UNIQUE constraint failed: notes.date
+    at Module.insertNote (file:///D:/Web%20Projects/backend%20AgendaCourse%20Refactored/repositories/notesRepository.js:10:75)
+    at addNoteWithDate (file:///D:/Web%20Projects/backend%20AgendaCourse%20Refactored/services/NoteService.js:26:27)
+    at AddHomeNote (file:///D:/Web%20Projects/backend%20AgendaCourse%20Refactored/controllers/homeController.js:70:28)
+    at Layer.handle [as handle_request] (D:\Web Projects\backend AgendaCourse Refactored\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\Web Projects\backend AgendaCourse Refactored\node_modules\express\lib\router\route.js:149:13)
+    at isAuthentified (file:///D:/Web%20Projects/backend%20AgendaCourse%20Refactored/middlewares/sessionCheck.js:3:9)
+    at Layer.handle [as handle_request] (D:\Web Projects\backend AgendaCourse Refactored\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\Web Projects\backend AgendaCourse Refactored\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (D:\Web Projects\backend AgendaCourse Refactored\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (D:\Web Projects\backend AgendaCourse Refactored\node_modules\express\lib\router\layer.js:95:5)

@@ -23,8 +23,14 @@ export async function getWeekNotes(dates) {
 }
 
 export async function addNoteWithDate(date, note) {
-    const data = noteRepo.insertNote(date, note)
-    return data.lastInsertRowid
+    const exists = noteRepo.selectNoteWithDate(date)
+    let data;
+    if (exists) {
+        data = noteRepo.updateNoteWithDate(date, note)
+    } else {
+        data = noteRepo.insertNote(date, note)
+    }
+    return data?.lastInsertRowid
 }
 
 export async function updateNoteWithDate(date, note) {

@@ -15,3 +15,4 @@ router.post('/getNotes', isAuthentified, GetPlanningNotes);
 router.post('/addNote', isAuthentified, AddPlanningNotes);
 
 export default router;
+//REGARDER RECURRENCE START DATE QUI DOIT AVOIR CHANGER AVEC LE CHECK

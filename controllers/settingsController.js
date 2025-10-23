@@ -4,16 +4,13 @@ import { addDrivers, deleteDriverService, modifyDriver } from "../services/Drive
 
 /**
  * @route   GET parametres/get
- * @desc    Récupère tous les utilisateurs, chauffeur comme utilisateur classique.
+ * @desc    Récupère tous les chauffeurs .
+ * @access private
  * @output  [
- *              {driver_id:5, ...user},
- *              {driver_id:6, ...user}
+ *              {driver_id:5, ...driver, account: false, role: ''},
+ *              {driver_id:6, ...driver, account: true, role: 'Conducteur'}
  *          ]
- * @logic   - Récupération des chauffeurs dans la mainDB
- *          - Itération sur les chauffeurs:
- *              Récupération du comptes utilisateurs du chauffeurs si il en a et ajout des donnés combiner au tableau d'objet
- *          - Renvoie du tableau
- * @depends mainDB userDB
+ * @logic   - Récupère tous les chauffeurs avec informations de si un compte est posséder ou pas
  */
 export const GetDrivers = async function (req, res) {
     try {
@@ -28,7 +25,8 @@ export const GetDrivers = async function (req, res) {
 
 /**
  * @route   GET parametres/getUser
- * @desc    Récupère tous les utilisateurs (chauffeur inclus)
+ * @desc    Récupère tous les utilisateurs simple (pas les chauffeurs)
+ * @access private
  * @output  [
  *              { ...user},
  *              {driver_id:6, ...user}
@@ -38,7 +36,6 @@ export const GetDrivers = async function (req, res) {
  *          - Itération sur les utilisateurs:
  *              Récupération du comptes utilisateurs du chauffeurs si il en a et ajout des donnés combiner au tableau d'objet
  *          - Renvoie du tableau
- * @depends mainDB userDB
  */
 export const getUsers = async (req, res) => {
     try {
@@ -55,12 +52,10 @@ export const getUsers = async (req, res) => {
 /**
  * @route   POST parametres/getHistory
  * @desc    Récupère l'historique des courses en fonction d'une date choisi
+ * @access private
  * @input   BODY {date: '25/05/2025'}
  * @output  {data, drivers}
- * @logic   - Récupère dans la mainDB les courses de la date en question
- *          - Récupère les chauffeurs dans la mainDB
- *          - Renvoie les deux données dans un objet
- * @depends mainDB
+ * @logic   - Renvoie le planning de la journée et les chauffeurs pour faire l'assemblage finale du planning
  */
 export const GetHistoryData = async function (req, res) {
     const { date } = req.body;
@@ -77,10 +72,10 @@ export const GetHistoryData = async function (req, res) {
 /**
  * @route   POST parametres/CheckName
  * @desc    Récupère tous les utilisateurs, chauffeur comme utilisateur classique.
+ * @access private
  * @input   {username:'Patrick'}
  * @output  {exists: true || false}
- * @logic   - Récupération des utilisateurs dans la userDB
- *          - Réponse par vrai ou faux si l'utilisateur est dans la db
+ * @logic   - Réponse par vrai ou faux si l'utilisateur est dans la db
  * @depends  userDB
  */
 export const CheckUserName = async (req, res) => {
@@ -98,13 +93,10 @@ export const CheckUserName = async (req, res) => {
 /**
  * @route   POST parametres/add
  * @desc    Ajoute un chauffeur (Avec ou sans compte utilisateur)
+ * @access private
  * @input   BODY {name:'Patrick', color: '#fffff', account: true, role: 'admin'}
  * @output  'Driver added' || randomChar (password)
- * @logic   - Si besoin d'un compte on connecte la db user
- *          - Insertion du chauffeur dans BDD driver de maindb
- *          - Si besoin d'un compte on génère un mot de passe, on le hash et ensuite insertion dans BDD users
- *          - Réponse avec le mot de passe si un compte est demandé
- * @depends mainDB userDB
+ * @logic   - Créer un chauffeur et réponse avec le mot de passe si un compte est demandé
  */
 export const AddDrivers = async function (req, res) {
     const { name, color, account, role } = req.body;
@@ -121,12 +113,10 @@ export const AddDrivers = async function (req, res) {
 /**
  * @route   POST parametres/addAccount
  * @desc    Ajoute un utilisateur
+ * @access private
  * @input   BODY {name:'Patrick', role: 'admin'}
  * @output  'Driver added' || randomChar (password)
- * @logic   - on connecte la db user
- *          - on génère un mot de passe, on le hash et ensuite insertion dans BDD users
- *          - Réponse avec le mot de passe
- * @depends userDB
+ * @logic   - Créer un utilisateur et réponse avec le mot de passe
  */
 export const createUser = async (req, res) => {
     const { username, role } = req.body;
@@ -143,18 +133,10 @@ export const createUser = async (req, res) => {
 /**
  * @route   POST parametres/modify
  * @desc    Modification d'un chauffeur
+ * @access private
  * @input   BODY {id:5, name:'Patrick', color: '#fffff', account: true, role: 'admin'}
  * @output  { message: 'Driver modified', password: randomChar } || { message: 'Driver modified' }
- * @logic   - On récupère l'utilisateur dans la db user si le chauffeur en as un
- *          - Si le chauffeur demande un compte et n'en as pas:
- *              - Génération du mot de passe, hash et insertion du chauffeur dans la db User
- *            Sinon si ne veux plus de compte, 
- *              - Suppression de celui ci dans la db User
- *            Sinon si garde son compte et est present dans la db User
- *              - Mise a jour du role
- *          - Modification du chauffeur dans la main db (toutes les données update avec les nouvelles)
- *          - Réponse avec le mot de passe si un, a été générer pour une demande de compte sinon string
- * @depends mainDB userDB
+ * @logic   - Modification du chauffeur (compte inclus si changement quelconque de celui ci)
  */
 export const ModifyDrivers = async function (req, res) {
     const { id, name, color, account, role } = req.body;
@@ -171,10 +153,10 @@ export const ModifyDrivers = async function (req, res) {
 /**
  * @route   POST parametres/modifyAccount
  * @desc    Modification d'un Utilisateur
+ * @access private
  * @input   BODY {name:'Patrick', role: 'admin'}
  * @output  'Account modified'
  * @logic   - Mise a jour avec les information recu
- *          - Réponse string
  * @depends userDB
  */
 export const ModifyAccount = async function (req, res) {
@@ -192,12 +174,10 @@ export const ModifyAccount = async function (req, res) {
 /**
  * @route   POST parametres/changePassword
  * @desc    Modifie le mot de passe d'un utilisateur
+ * @access private
  * @input   BODY {name:'Patrick', newpassword: 'fgh456dgfdgd'}
  * @output  'Password changed' 
- * @logic   - on connecte la db user
- *          - on vérifie que l'utilisateur existe dans la bdd
- *          - On hash le mot de passe voulu par l'utilisateur et on le stock
- *          - Réponse avec confirmation
+ * @logic   - Changement du mot de passe et réponse avec confirmation ou erreur
  * @depends userDB
  */
 export const changePassword = async (req, res) => {
@@ -215,11 +195,10 @@ export const changePassword = async (req, res) => {
 /**
  * @route   POST parametres/regeneratePassword
  * @desc    Recréer un mot de passe pour un utilisateur
+ * @access private
  * @input   BODY {name:'Patrick'}
  * @output  randomChar (password)
- * @logic   - on connecte la db user
- *          - on génère un mot de passe, on le hash et ensuite insertion dans BDD users
- *          - Réponse avec le mot de passe
+ * @logic   - Création d'un nouveau mot de passe et réponse avec le mot de passe
  * @depends userDB
  */
 export const regenPassword = async (req, res) => {
@@ -237,6 +216,7 @@ export const regenPassword = async (req, res) => {
 /**
  * @route   DELETE parametres/delete
  * @desc    Suppression d'un chauffeur
+ * @access private
  * @input   BODY {id:5}
  * @output  'Driver deleted'
  * @logic   - Suppression du chauffeur a l'aide de son id
@@ -257,9 +237,10 @@ export const DeleteDrivers = async function (req, res) {
 /**
  * @route   DELETE parametres/delete
  * @desc    Suppression d'un utilisateur
+ * @access private
  * @input   BODY {name:'Patrick'}
  * @output  'Account deleted'
- * @logic   - Suppression du Utilisateur a l'aide de son nom
+ * @logic   - Suppression d'un Utilisateur a l'aide de son nom
  * @depends userDB
  */
 export const DeleteAccount = async function (req, res) {

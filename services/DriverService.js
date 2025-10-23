@@ -6,6 +6,11 @@ export async function getAllDrivers() {
     return driverRepo.getAll()
 }
 
+export async function getDriverByNameService(name) {
+    const data = driverRepo.getDriverByName(name)
+    return data
+}
+
 export async function addDrivers(name, color, account, role) {
     const exists = driverRepo.getDriverByName(name)
     if (exists) throw new Error('Driver already exists')

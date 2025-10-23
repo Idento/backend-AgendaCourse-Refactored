@@ -11,19 +11,19 @@ import { isBefore } from 'date-fns'
 
 
 export async function getPlanning(week = false, date = '') {
-    const driver = await getAllDrivers() || []
+    const drivers = await getAllDrivers() || []
     if (week) {
         const weekDays = date.length > 0 ? retrieveDateFromDate(date) : retrieveDate()
         let result = []
         for (let i = 0; i < weekDays.length; i++) {
             const planning = planningRepo.selectPlanningFrequencyWithDate(weekDays[i])
-            result.push({ date: weekDays[i], data: [...planning, ...driver] })
+            result.push({ date: weekDays[i], data: [...planning, { drivers }] })
         }
         return result
     } else {
         const today = todayDateFormated()
         const planning = planningRepo.selectPlanningFrequencyWithDate(today)
-        const result = [...planning, ...driver]
+        const result = [...planning, { drivers }]
         return result
     }
 }
@@ -51,7 +51,7 @@ export async function getHistoryPlanning(date) {
     return { data: planningData, drivers }
 }
 
-export async function getDataPlanningForReccurenceCheck(id) {
+export function getDataPlanningForReccurenceCheck(id) {
     return planningRepo.selectOnePlanningByReccurenceId(id)
 }
 
@@ -215,7 +215,7 @@ export function checkPlanningRecurrence() {
         if (!allPlanningData.some(item => item.date === reccurence.start_date) && !toArray(excludedDays?.date).includes(reccurence.start_date)) {
             const dataPlanningCopyWithStarDate = { ...allPlanningData[0], date: reccurence.start_date, recurrence_id: reccurence.id }
             delete dataPlanningCopyWithStarDate.id
-            console.log('checkplanningrecurrenceStartDate:', dataPlanningCopyWithStarDate);
+            console.log('checkplanningrecurrence StartDate:', dataPlanningCopyWithStarDate);
             planningRepo.insertNewPlanningWithRecurrence(dataPlanningCopyWithStarDate)
         }
         if (!excludedDays && allPlanningData.length > 0) {
@@ -223,6 +223,7 @@ export function checkPlanningRecurrence() {
             for (const date of allDates) {
                 if (!allPlanningData.some(item => item.date === date)) {
                     const dataPlanningCopy = { ...allPlanningData[0], date: date }
+                    console.log('checkplanningrecurrence:', dataPlanningCopy);
                     planningRepo.insertNewPlanningWithRecurrence(dataPlanningCopy)
                 }
             }
@@ -231,6 +232,7 @@ export function checkPlanningRecurrence() {
             for (const date of AllDatesWithoutRecurrence) {
                 if (!allPlanningData.some(item => item.date === date)) {
                     const dataPlanningCopy = { ...allPlanningData[0], date: date }
+                    console.log('checkplanningrecurrence WithExcluded:', dataPlanningCopy);
                     planningRepo.insertNewPlanningWithRecurrence(dataPlanningCopy)
                 }
             }

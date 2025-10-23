@@ -7,7 +7,7 @@ export function getAll() {
 }
 
 export function getDriverByName(name) {
-    return driverdb.prepare('SELECT * FROM driver WHERE name=?').run(name)
+    return driverdb.prepare('SELECT * FROM driver WHERE name=?').get(name)
 }
 
 export function insertNewDriver(name, color) {

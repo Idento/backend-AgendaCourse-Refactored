@@ -4,12 +4,12 @@ import { addNoteWithDate, getSingleNotesWithDate } from '../services/NoteService
 /**
  * @route   GET home/
  * @desc    Récupère toutes les course d'aujourd'hui
+ * @access  private
  * @output  [
  *              {driver_id: 5, ...course},
  *              {driver_id: 5, ...course}
  *          ]
  * @logic   -Récupère toutes les courses d'aujourd'hui
- * @access  private
  */
 export const GetHomeData = async function (req, res) {
     try {
@@ -23,15 +23,13 @@ export const GetHomeData = async function (req, res) {
 
 /**
  * @route   GET home/getNotes
- * @desc    Récupère toutes les notes d'aujourd'hui
- * @input   Body {String} date - Date voulu pour la récupération des courses
+ * @desc    Récupère la note d'aujourd'hui
+ * @access  private
+ * @input   Body {String} date - Date voulu pour la récupération de la note
  * @output  [
  *              'Note de la journée'
  *          ]
- * @logic   - Récupération de la date voulu dans le body, pour la recherche
- *          - Envoie des notes en JSON
- * @depends maindb
- * @access  private
+ * @logic   - Envoie des notes en JSON
  */
 export const GetHomeNotes = async function (req, res) {
     const { date } = req.body;
@@ -48,30 +46,24 @@ export const GetHomeNotes = async function (req, res) {
 
 /**
  * @route   POST home/addNote
- * @desc    Ajoute une note ou modifie l'existante de la date en question
+ * @desc    Ajoute une note ou modifie la note existante de la date en question
+ * @access private
  * @input   Body {
  *              date: '25/05/2025',
  *              note: 'note de la journée'                 
  *              }
  * @output 'Data added'
- * @logic   - Récupère la date et les notes de la journées concernant la date
- *          - Récupère dans la bdd si la note est existante
- *          - Si elle n'existe pas:
- *              Insère la note
- *          - Sinon:
- *              Met a jour la note
- * @access private
- * @depends maindb
+ * @logic   - Met a jour la note ou insère si inexistante
  * @example
  */
 export const AddHomeNote = async function (req, res) {
-    const { date, note } = req.body;
+    const { note, date } = req.body;
     try {
         const data = await addNoteWithDate(date, note)
         console.log('addhomenote id added', data);
         res.status(200).send('Data added');
     } catch (err) {
-        console.error('Error while adding data: ', err);
+        console.error('Error while adding data: ', err.stack);
         res.status(500).send('Internal server error');
         return;
     }
@@ -80,7 +72,8 @@ export const AddHomeNote = async function (req, res) {
 
 /**
  * @route   POST home/addData
- * @desc    Ajoute ou met a jour une course
+ * @desc    Ajoute une course
+ * @access private
  * @input   BODY {data: 
  *              [
  *                  {
@@ -96,20 +89,8 @@ export const AddHomeNote = async function (req, res) {
  *                      frequency: [4,5]}
  *                  }
  *              ]
- * @output {id: 1} ou 'data added'
- * @logic
- *          - Récupère les données recu
- *          - Récupère la date d'aujourd'hui
- *          - Récupèration du planning d'aujourd'hui déjà en BDD
- *          - Comparaison de la liste de course du planning d'aujourd'hui avec celui envoyé par l'utilisateur
- *          - En fonction de si la course apparait dans le planning on le met a jour ou on l'insère
- *          - Si dans les données recu, une recurrence apparait, on insère la récurrences ou met a jour
- * 
- * @errors  - 'donnée incomplète'
- *          - 'Erreur d'insertion dans la BDD'
- * @access private
- * @depends maindb
- * @example
+ * @output  {id: 1} ou 'data added'
+ * @logic   - Ajoute une course au planning (Possibilité d'ajouté plusieurs courses en même temps si le frontend évolue)
  */
 export const DataToAdd = async function (req, res) {
     const { data } = req.body;
@@ -126,6 +107,28 @@ export const DataToAdd = async function (req, res) {
 
 }
 
+/**
+ * @route   POST home/modifyData
+ * @desc    Met a jour une course
+ * @access private
+ * @input   BODY { data: 
+ *                  {
+ *                      id:1 , 
+ *                      driver_id: 0, 
+ *                      date: '25/05/2025', 
+ *                      client_name: 'test', 
+ *                      start_time: '15:00', 
+ *                      return_time: '', 
+ *                      note:'test', 
+ *                      destination:'la-bas', 
+ *                      long_distance: 'true', 
+ *                      frequency: [4,5]}
+ *                  }
+ *                }
+ *              
+ * @output  {id: 1} ou 'data added'
+ * @logic   - Ajoute une course au planning (Possibilité d'ajouté plusieurs courses en même temps si le frontend évolue)
+ */
 export const modifyHomeData = async (req, res) => {
     const { data } = req.body
     try {
@@ -142,37 +145,14 @@ export const modifyHomeData = async (req, res) => {
 /**
  * @route   DELETE home/deleteData
  * @desc    Supprime une course spécifique d'aujourd'hui ou une récurrence globale
- * @input
- * Body {
- *    data: [
- *       {
- *           id:1 , 
- *                       driver_id: 0, 
- *                       date: '25/05/2025', 
- *                       client_name: 'test', 
- *                       start_time: '15:00', 
- *                       return_time: '', 
- *                       note:'test', 
- *                       destination:'la-bas', 
- *                       long_distance: 'true', 
- *                       frequency: [4,5]}
- *       }
- *  ]
- * }
- *
- * @output  - 'Data deleted'
- *
- * @logic
- * - Récupèration des données de la requête
- * - Récupération des données dans la bdd 
- * - Si utilisateur demande a supprimer les recurrences, recherche de toutes les courses lié a la recurrence
- * - Boucle sur toutes les courses récurrentes devant être supprimer puis suppression de la course initial
- * - Sinon suppression de la date intiale
- * @errors
- * - "id invalide"
- *
  * @access private
- * @depends maindb
+ * @input Body { data: {
+ *                       id:1 , 
+ *                       deleteRecurrence: false || true
+ *                     }
+ *              }
+ * @output  - 'Data deleted'
+ * @logic   - Supprime une course et en fonction de deleteRecurrence, sa recurrence aussi, si existante.
  */
 export const DeleteData = async function (req, res) {
     const { data } = req.body;
