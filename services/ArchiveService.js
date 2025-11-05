@@ -5,6 +5,7 @@ import * as archiveRepo from '../repositories/saveplanningRepository.js'
 export function savePlanning() {
     const allPlannings = planningRepo.selectAllPlanning();
 
+
     for (const planning of allPlannings) {
         const planningDate = parse(planning.date, 'dd/MM/yyyy', new Date());
         const todayPlanning = new Date();

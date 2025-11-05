@@ -3,7 +3,7 @@ import { db } from "../lib/allDb.js";
 const planningdb = db.main
 
 export function selectAllPlanning() {
-    return planningdb.prepare('SELECT * FROM planning')
+    return planningdb.prepare('SELECT * FROM planning').all()
 }
 
 export function selectPlanningById(id) {
