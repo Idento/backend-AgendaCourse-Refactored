@@ -16,13 +16,14 @@ import { fileURLToPath } from 'url';
 import { checkOldPlanning, checkPlanningRecurrence } from './services/PlanningService.js';
 import { checkRecurrenceStartDates } from './services/ReccurenceService.js';
 import { savePlanning } from './services/ArchiveService.js';
-
+import dotenv from 'dotenv';
+dotenv.config()
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
 export const sessionMiddleware = session({
-    secret: 'secret_key',
+    secret: process.env.SECRET,
     resave: true,
     saveUninitialized: true,
     cookie: {
