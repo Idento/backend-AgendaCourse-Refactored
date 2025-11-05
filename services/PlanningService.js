@@ -123,7 +123,6 @@ export async function addPlanning(data) {
     for (let i = 0; i < data.length; i++) {
         const { driver_id, date = formatToDate(new Date()), client_name, start_time, return_time, note, destination, long_distance, frequency } = data[i];
         const frequencyFormated = toArray(frequency)
-        console.log('frequency', frequencyFormated);
         if (frequencyFormated && frequencyFormated.length > 0) {
             try {
                 const { recurrence_id, allDays } = createRecurrence(date, frequencyFormated)
@@ -132,9 +131,8 @@ export async function addPlanning(data) {
                 if (allDaysData[0].date !== date) {
                     allDaysData.push({ ...planningToInsert, date: date })
                 }
-                console.log(allDaysData);
                 planningRepo.insertManyNewPlanningsWithRecurrence(allDaysData)
-                success.push({ client_name, recurrence_id })
+                success.push({ client_name, recurrence_id, allDaysData })
             } catch (err) {
                 failed.push({ driver_id, date, client_name, start_time, return_time, note, destination, long_distance, frequency, err })
             }
@@ -142,8 +140,7 @@ export async function addPlanning(data) {
             const planningToInsert = { driver_id, date, client_name, start_time, return_time, note, destination, long_distance: `${long_distance}` }
             try {
                 const addPlanning = planningRepo.insertNewPlanningWithoutRecurrence(planningToInsert)
-                console.log(addPlanning.lastInsertRowid);
-                success.push(addPlanning.lastInsertRowid)
+                success.push({ Client: ` ${client_name}`, date })
             } catch (err) {
                 failed.push(planningToInsert)
                 console.log(err);
@@ -205,12 +202,10 @@ export async function modifyPlanning(data) {
     const isBeforeNextDay = newDate && frequencyChanged ? isBefore(parseToDate(newDate), parseToDate(dbRecurrenceData?.next_day)) : null
     const dataForInsertion = { id, driver_id, client_name, start_time, return_time, note, destination, long_distance, recurrence_id }
     const newDateIsStartDate = date === dbRecurrenceData?.start_date && !!newDate
-    let result = 'failed modify'
-    console.log('frequencyChanged:', frequencyChanged, 'Frequency sent:', frequency, 'dbfrequency:', dbRecurrenceData?.frequency);
+    let result = 'échoué'
 
     try {
         if (newDateIsStartDate && frequencyChanged) { // Si la startdate change, on doit recalculer toutes les recurrences
-            console.log(isBeforeNextDay);
             if (isBeforeNextDay) {
                 handleChangeRecurrence(dbRecurrenceData.id, newDate, frequency, dataForInsertion)
             } else {
@@ -228,10 +223,8 @@ export async function modifyPlanning(data) {
                 }
                 deleteRecurrenceService(recurrence_id)
             } else if (!dbRecurrenceData?.frequency && toArray(frequency).length > 0) {
-                console.log('in good if');
                 const { recurrence_id, allDays } = createRecurrence(date, frequency)
                 const planningToInsert = { driver_id, client_name, start_time, return_time, note, destination, long_distance: `${long_distance}`, recurrence_id }
-                console.log(allDays);
                 const allDaysData = allDays.map((item) => ({ ...planningToInsert, date: item }))
                 planningRepo.updatePlanningRecurrenceIdWithId(recurrence_id, id)
                 planningRepo.insertManyNewPlanningsWithRecurrence(allDaysData)
@@ -255,7 +248,7 @@ export async function modifyPlanning(data) {
                 planningRepo.updatePlanningWithId({ ...dataForInsertion, date: date, long_distance: `${long_distance}` })
             }
         }
-        result = 'success modify planning'
+        result = 'réussi'
     } catch (err) {
         console.log('modify error', err);
     }
@@ -273,14 +266,14 @@ export async function modifyPlanning(data) {
  *      - On exclue la date qu'on supprime dans les dates possibles de cette recurrence
  *          - Si la ligne a supprimer concerne la start_date ou next_day, on recalcule la recurrence
  * - Sinon on supprime la course
- * @returns 
+ * @returns {Promise<string/>}
  */
 export async function deletePlanning(data) {
     const { id, deleteRecurrence } = data
     const line = planningRepo.selectPlanningById(id)
     const recurrence = line?.recurrence_id ? recurrenceRepo.selectWithId(line.recurrence_id) : {}
-    console.log(line);
-    let result = 'failed delete'
+    console.log(`client: ${line.client_name}, date: ${line.date}, heure: ${line.start_time}`);
+    let result = 'échoué'
     try {
         if (deleteRecurrence) {
             planningRepo.deletePlanningWithRecurrenceId(line.recurrence_id)
@@ -296,9 +289,9 @@ export async function deletePlanning(data) {
         } else {
             planningRepo.deletePlanningWithId(id)
         }
-        result = 'success delete planning'
+        result = 'réussi'
     } catch (err) {
-        console.log('delete error', err);
+        console.log('erreur de supression', err);
     }
     invalidatePlanningCache()
     return result
@@ -341,7 +334,6 @@ export function checkPlanningRecurrence() {
         if (!allPlanningData.some(item => item.date === reccurence.start_date) && !toArray(excludedDays?.date).includes(reccurence.start_date)) {
             const dataPlanningCopyWithStarDate = { ...allPlanningData[0], date: reccurence.start_date, recurrence_id: reccurence.id }
             delete dataPlanningCopyWithStarDate.id
-            console.log('checkplanningrecurrence StartDate:', dataPlanningCopyWithStarDate);
             planningRepo.insertNewPlanningWithRecurrence(dataPlanningCopyWithStarDate)
         }
         if (!excludedDays && allPlanningData.length > 0) {
@@ -349,7 +341,6 @@ export function checkPlanningRecurrence() {
             for (const date of allDates) {
                 if (!allPlanningData.some(item => item.date === date)) {
                     const dataPlanningCopy = { ...allPlanningData[0], date: date }
-                    console.log('checkplanningrecurrence:', dataPlanningCopy);
                     planningRepo.insertNewPlanningWithRecurrence(dataPlanningCopy)
                 }
             }
@@ -358,7 +349,6 @@ export function checkPlanningRecurrence() {
             for (const date of AllDatesWithoutRecurrence) {
                 if (!allPlanningData.some(item => item.date === date)) {
                     const dataPlanningCopy = { ...allPlanningData[0], date: date }
-                    console.log('checkplanningrecurrence WithExcluded:', dataPlanningCopy);
                     planningRepo.insertNewPlanningWithRecurrence(dataPlanningCopy)
                 }
             }

@@ -14,7 +14,6 @@ import { addNoteWithDate, getSingleNotesWithDate } from '../services/NoteService
 export const GetHomeData = async function (req, res) {
     try {
         const data = await getPlanning()
-        console.log('getHomedata', data);
         res.status(200).json(data);
     } catch (err) {
         res.status(500).json('Aucun planning trouvé');
@@ -35,7 +34,6 @@ export const GetHomeNotes = async function (req, res) {
     const { date } = req.body;
     try {
         const data = await getSingleNotesWithDate(date);
-        console.log('getHomeNotes', data);
         res.status(200).json(data);
     } catch (err) {
         console.error('Error while fetching data: ', err);
@@ -60,7 +58,6 @@ export const AddHomeNote = async function (req, res) {
     const { note, date } = req.body;
     try {
         const data = await addNoteWithDate(date, note)
-        console.log('addhomenote id added', data);
         res.status(200).send('Data added');
     } catch (err) {
         console.error('Error while adding data: ', err.stack);
@@ -94,10 +91,10 @@ export const AddHomeNote = async function (req, res) {
  */
 export const DataToAdd = async function (req, res) {
     const { data } = req.body;
-    console.log(data);
     try {
+        console.log(`[AJOUT] Tentative d\'ajout d\'une course par ${req.session.user.username} avec les données:`, data);
         const added = await addPlanning(data)
-        console.log('data added to planning', added);
+        console.log(`[AJOUT] Donnée ajouté: ${JSON.stringify(added.success)}. Erreur: ${added.failed.length > 0 ? JSON.stringify(added.failed) : 0}`);
         res.status(200).send('Data added');
     } catch (err) {
         console.error('Error while adding data: ', err);
@@ -132,8 +129,9 @@ export const DataToAdd = async function (req, res) {
 export const modifyHomeData = async (req, res) => {
     const { data } = req.body
     try {
+        console.log(`[MODIFICATION] Modification initié par ${req.session.user.username} avec les données:`, data)
         const result = await modifyPlanning(data)
-        console.log('modifyHomeData', result);
+        console.log(`[MODIFICATION] Modification ${result}`);
         res.status(200).send('Data modified');
     } catch (err) {
         console.error('Error while adding data: ', err);
@@ -157,7 +155,9 @@ export const modifyHomeData = async (req, res) => {
 export const DeleteData = async function (req, res) {
     const { data } = req.body;
     try {
-        await deletePlanning(data)
+        console.log(`[SUPRESSION] Supression initié par ${req.session.user.username} avec les données:`, data)
+        const result = await deletePlanning(data)
+        console.log(`[SUPRESSION] Supression ${result}`);
         res.status(200).send('Data deleted');
     } catch (err) {
         console.error('Error while adding data: ', err);

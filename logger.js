@@ -3,6 +3,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import winston from 'winston'
 import DailyRotateFile from 'winston-daily-rotate-file'
+import util from 'util'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -14,12 +15,13 @@ if (!fs.existsSync(logDir)) {
 
 const logger = winston.createLogger({
     level: 'info',
-    format: winston.format.combine(
-        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        winston.format.printf(
-            (info) => `[${info.timestamp}] ${info.level.toUpperCase()} — ${info.message}`
-        )
-    ),
+    format:
+        winston.format.combine(
+            winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+            winston.format.printf(
+                (info) => `[${info.timestamp}] ${info.level.toUpperCase()} — ${info.message}`
+            )
+        ),
     transports: [
         new DailyRotateFile({
             filename: path.join(logDir, '%DATE%.log'),
@@ -33,9 +35,18 @@ const logger = winston.createLogger({
     ]
 })
 
-// console.log = (...args) => logger.info(args.join(' '))
-console.info = (...args) => logger.info(args.join(' '))
-console.warn = (...args) => logger.warn(args.join(' '))
-console.error = (...args) => logger.error(args.join(' '))
+const formatArgs = (args) =>
+    args
+        .map((arg) =>
+            typeof arg === 'object'
+                ? util.inspect(arg, { colors: true, depth: null })
+                : arg
+        )
+        .join(' ');
+
+console.log = (...args) => logger.info(formatArgs(args))
+console.info = (...args) => logger.info(formatArgs(args))
+console.warn = (...args) => logger.warn(formatArgs(args))
+console.error = (...args) => logger.error(formatArgs(args))
 
 export default logger

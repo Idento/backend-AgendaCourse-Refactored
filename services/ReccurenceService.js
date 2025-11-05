@@ -50,14 +50,14 @@ export function createExcludeDays(recurrence_id, date) {
  * @param {number} id 
  * @param {string} start_date 
  * @param {string || object[]} weekDays 
- * - Génération des dates selon la nouvelle date passer
+ * - Génération des dates selon la nouvelle date passer en paramètre
  * - Génération des dates selon l'ancienne date
  * - Vérification de potentiel date exclus
  * - tri des dates a ajouter, les dates a ajouter ne doivent pas être presente dans les anciennes dates ni dans les exclus
  * - tri des dates a supprimer, elles ne doivent pas être dans les nouvelles dates
  * - On vérifie que le next_day n'est pas exclus sinon on prend encore la prochaine date
  * - On renvoie l'id de la recurrence modifié, les dates a ajouter et les dates a supprimer
- * @returns 
+ * @returns {object}
  */
 export function modifyRecurrence(id, start_date, weekDays) {
     const frequency = toArray(weekDays)
@@ -68,13 +68,11 @@ export function modifyRecurrence(id, start_date, weekDays) {
     const excludedRow = excludedRepo.selectExcludedWithRecurrenceId(id)
     const excludedDates = excludedRow?.date || '[]'
     const datesToExclude = toArray(excludedDates)
-    console.log(datesToExclude);
 
     const toAdd = newRecurrence.filter(d => !oldRecurrence.includes(d) && !datesToExclude.includes(d))
     const toDelete = oldRecurrence.filter(d => !newRecurrence.includes(d))
 
     const filterToCalculateNextDay = newRecurrence.filter(d => !datesToExclude.includes(d))
-    console.log(filterToCalculateNextDay);
     const next_day = start_date === filterToCalculateNextDay[0] ? filterToCalculateNextDay[1] : filterToCalculateNextDay[0];
     recurrenceRepo.updateRecurrenceWithId({ frequency: JSON.stringify(frequency), start_date, next_day, id })
 
@@ -115,7 +113,6 @@ export function checkRecurrenceStartDates() {
                 const { id, toAdd, toDelete } = modifyRecurrence(recurrence.id, recurrence.next_day, recurrence.frequency)
                 for (const add of toAdd) {
                     const data = { ...dataPlanning, date: add }
-                    console.log('check of recurrence', dataPlanning);
                     addSimplePlanning(data)
                 }
             } else if (startOfDay(new Date()) > startOfDay(parseToDate(recurrence.next_day))) {
@@ -133,7 +130,6 @@ export function checkRecurrenceStartDates() {
                 const { id, toAdd, toDelete } = modifyRecurrence(recurrence.id, result, recurrence.frequency)
                 for (const add of toAdd) {
                     const data = { ...dataPlanning, date: add }
-                    console.log('check of recurrence', dataPlanning);
                     addSimplePlanning(data)
                 }
             }

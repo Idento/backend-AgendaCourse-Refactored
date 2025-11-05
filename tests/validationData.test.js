@@ -6,7 +6,6 @@ describe('Validation Data', () => {
         const result = toArray('5')
         const resultTwo = toArray([5])
         const resultThree = toArray('[5]')
-        console.log(result);
 
         expect(result).toEqual(expect.arrayContaining([5]))
         expect(resultTwo).toEqual(expect.arrayContaining([5]))

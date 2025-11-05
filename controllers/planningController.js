@@ -62,7 +62,6 @@ export const GetPlanningNotes = async function (req, res) {
     const { dates } = req.body;
     try {
         const data = await getWeekNotes(dates)
-        console.log('note planning', data);
         res.status(200).json(data);
     } catch (err) {
         console.error('Error while fetching notes: ', err.stack);
@@ -83,7 +82,6 @@ export const GetPlanningNotes = async function (req, res) {
  */
 export const AddPlanningNotes = async function (req, res) {
     const { date, note } = req.body;
-    console.log(note);
 
     try {
         await modifyOrAddNote(date, note)
@@ -112,7 +110,9 @@ export const AddPlanningNotes = async function (req, res) {
 export const AddPlanning = async function (req, res) {
     const { data } = req.body;
     try {
-        await addPlanning(data)
+        console.log(`[AJOUT] Tentative d\'ajout d\'une course par ${req.session.user.username} avec les données:`, data);
+        const added = await addPlanning(data)
+        console.log(`[AJOUT] Donnée ajouté: ${JSON.stringify(added.success)}. Erreur: ${added.failed.length > 0 ? JSON.stringify(added.failed) : 0}`);
         res.status(200).send('Planning added');
     } catch (err) {
         console.error('Error while adding planning: ', err.stack);
@@ -133,7 +133,9 @@ export const AddPlanning = async function (req, res) {
 export const modifyPlanningData = async (req, res) => {
     const { data } = req.body
     try {
-        await modifyPlanning(data)
+        console.log(`[MODIFICATION] Modification initié par ${req.session.user.username} avec les données:`, data)
+        const result = await modifyPlanning(data)
+        console.log(`[MODIFICATION] Modification ${result}`);
         res.status(200).send('Planning modified');
     } catch (err) {
         console.error('Error while modifying planning: ', err.stack);
@@ -156,7 +158,9 @@ export const modifyPlanningData = async (req, res) => {
 export const DeletePlanning = async function (req, res) {
     const { data } = req.body;
     try {
-        await deletePlanning(data)
+        console.log(`[SUPRESSION] Supression initié par ${req.session.user.username} avec les données:`, data)
+        const result = await deletePlanning(data)
+        console.log(`[SUPRESSION] Supression ${result}`);
         res.status(200).send('Planning deleted');
     } catch (err) {
         console.error('Error while deleting planning: ', err.stack);

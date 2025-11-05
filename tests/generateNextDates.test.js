@@ -4,7 +4,6 @@ import { generateNextDates, generateNextDatesWithoutExcludeDays } from '../utils
 describe('generateNextDates', () => {
     it('devrai générer les dates sur 4 semaines pour les jours spécifié', () => {
         const result = generateNextDates('19/10/2025', [3, 4])
-        console.log(result);
 
 
         expect(result.length).toBe(8)

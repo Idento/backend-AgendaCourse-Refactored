@@ -14,7 +14,6 @@ import { getDriverPlanningByDateService } from "../services/PlanningService.js";
 export const GetDriverData = async function (req, res) {
     try {
         const data = await getAllDrivers()
-        console.log(data);
         res.status(200).json(data);
     } catch (err) {
         console.error('Error while fetching data: ', err);

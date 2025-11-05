@@ -17,7 +17,6 @@ const WEEKDAYBYNUMBER = {
 export function generateNextDates(startDate, weekDays) {
     if (weekDays.length === 0) return []
     const safeWeekDay = toArray(weekDays)
-    console.log(typeof safeWeekDay);
     const rruleWeekDays = safeWeekDay.map((item) => WEEKDAYBYNUMBER[item])
     const parsedDate = toUTC(parseToDate(startDate))
     const today = formatToDate(new Date()) === startDate

@@ -1,2 +1,4 @@
 /node_modules
 /*.db*
+/logs/*
+/logs/.277fdf8d360addb66d86f9e227dd1891a8dbee58-audit.json
