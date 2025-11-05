@@ -15,6 +15,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { checkOldPlanning, checkPlanningRecurrence } from './services/PlanningService.js';
 import { checkRecurrenceStartDates } from './services/ReccurenceService.js';
+import { savePlanning } from './services/ArchiveService.js';
 // import { savePlanning } from './utils/storeToSaveDB.js';
 // import { checkAll } from './utils/checkAll.js';
 
@@ -49,6 +50,7 @@ createSavedTable();
 checkRecurrenceStartDates()
 checkOldPlanning()
 checkPlanningRecurrence()
+savePlanning()
 
 app.use(json());
 
