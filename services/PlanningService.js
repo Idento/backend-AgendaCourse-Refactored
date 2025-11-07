@@ -48,7 +48,6 @@ export async function getPlanning(week = false, date = '') {
  */
 export async function getPlanningCache() {
     if (planningCache.has('plannings')) return planningCache.get('plannings')
-
     const plannings = await getPlanning()
     planningCache.set('plannings', plannings)
     return plannings
