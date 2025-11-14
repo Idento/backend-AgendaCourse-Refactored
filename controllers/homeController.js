@@ -83,7 +83,7 @@ export const AddHomeNote = async function (req, res) {
  *                      note:'test', 
  *                      destination:'la-bas', 
  *                      long_distance: 'true', 
- *                      frequency: [4,5]}
+ *                      frequency: [4,5]
  *                  }
  *              ]
  * @output  {id: 1} ou 'data added'
@@ -101,7 +101,6 @@ export const DataToAdd = async function (req, res) {
         res.status(500).send('Internal server error');
         return;
     }
-
 }
 
 /**
